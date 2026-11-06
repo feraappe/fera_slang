@@ -1,52 +1,55 @@
-name: Build Android APK
+name: Build Android APK (FeRa Slang)
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+push:
+branches: \[ "main", "master" \]
+workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+build:
+runs-on: ubuntu-latest
+steps:
+\- name: Checkout Code
+uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+```
+  - name: Setup Node.js (Active LTS)
+    uses: actions/setup-node@v4
+    with:
+      node-version: 22
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+  - name: Setup Java JDK
+    uses: actions/setup-java@v5
+    with:
+      distribution: 'zulu'
+      java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+  - name: Setup Android SDK
+    uses: android-actions/setup-android@v3
 
-      - name: Initialize Capacitor Project
-        run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          mkdir www
-          cp index.html www/index.html
-          npx cap init "Ravan Sokhan" "com.ravansokhan.app" --web-dir "www"
-          npx cap add android
+  - name: Initialize Capacitor Project
+    run: |
+      npm init -y
+      npm install @capacitor/core @capacitor/cli @capacitor/android
+      mkdir -p www
+      cp index.html www/index.html
+      npx cap init "FeRa Slang" "com.feraslang.app" --web-dir "www"
+      npx cap add android
 
-      - name: Inject Android Permissions
-        run: |
-          sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET" />\n<uses-permission android:name="android.permission.RECORD_AUDIO" />\n<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />' android/app/src/main/AndroidManifest.xml
+  - name: Inject Android Permissions
+    run: |
+      sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET" />\n<uses-permission android:name="android.permission.RECORD_AUDIO" />\n<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />' android/app/src/main/AndroidManifest.xml
 
-      - name: Build Debug APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+  - name: Build Debug APK
+    run: |
+      cd android
+      chmod +x gradlew
+      ./gradlew assembleDebug
 
-      - name: Upload APK to Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ravan-sokhan-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+  - name: Upload APK to Artifacts
+    uses: actions/upload-artifact@v4
+    with:
+      name: fera-slang-apk
+      path: android/app/build/outputs/apk/debug/app-debug.apk
+
+```
