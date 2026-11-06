@@ -1,17 +1,3 @@
-name: Build Android APK (FeRa Slang)
-
-on:
-push:
-branches: \[ "main", "master" \]
-workflow_dispatch:
-
-jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-\- name: Checkout Code
-uses: actions/checkout@v4
-
 ```
   - name: Setup Node.js (Active LTS)
     uses: actions/setup-node@v4
