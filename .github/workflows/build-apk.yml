@@ -25,11 +25,6 @@ jobs:
         with:
           node-version: 22
 
-      - name: Setup Python for Image Processing
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
       - name: Prepare Web Directory
         run: |
           mkdir -p www
@@ -67,44 +62,38 @@ jobs:
 
       - name: Generate Android App Icons from icon.png
         run: |
-          ICON_FILE=""
-          if [ -f "icon.png" ]; then
-            ICON_FILE="icon.png"
-          elif [ -f "logo.png" ]; then
-            ICON_FILE="logo.png"
-          fi
-
-          if [ -n "$ICON_FILE" ]; then
-            echo "Logo file detected: $ICON_FILE. Generating Android launcher icons..."
-            pip install Pillow
-            python3 -c '
-import os
-from PIL import Image
-
-icon_path = "'"$ICON_FILE"'"
-img = Image.open(icon_path).convert("RGBA")
-
-densities = {
-    "mipmap-mdpi": 48,
-    "mipmap-hdpi": 72,
-    "mipmap-xhdpi": 96,
-    "mipmap-xxhdpi": 144,
-    "mipmap-xxxhdpi": 192
-}
-
-for folder, size in densities.items():
-    target_dir = os.path.join("android/app/src/main/res", folder)
-    os.makedirs(target_dir, exist_ok=True)
-    resized = img.resize((size, size), Image.Resampling.LANCZOS)
-    resized.save(os.path.join(target_dir, "ic_launcher.png"))
-    resized.save(os.path.join(target_dir, "ic_launcher_round.png"))
-    resized.save(os.path.join(target_dir, "ic_launcher_foreground.png"))
-
-print("Successfully generated all Android app icons in high quality!")
-'
-          else
-            echo "No custom icon.png detected. Proceeding with default icons."
-          fi
+          pip install Pillow
+          node -e '
+            const fs = require("fs");
+            const pyCode = [
+              "import os",
+              "from PIL import Image",
+              "",
+              "icon = \"icon.png\" if os.path.exists(\"icon.png\") else (\"logo.png\" if os.path.exists(\"logo.png\") else None)",
+              "if icon:",
+              "    print(f\"Processing icon: {icon}\")",
+              "    img = Image.open(icon).convert(\"RGBA\")",
+              "    densities = {",
+              "        \"mipmap-mdpi\": 48,",
+              "        \"mipmap-hdpi\": 72,",
+              "        \"mipmap-xhdpi\": 96,",
+              "        \"mipmap-xxhdpi\": 144,",
+              "        \"mipmap-xxxhdpi\": 192",
+              "    }",
+              "    for folder, size in densities.items():",
+              "        target_dir = os.path.join(\"android/app/src/main/res\", folder)",
+              "        os.makedirs(target_dir, exist_ok=True)",
+              "        resized = img.resize((size, size), Image.Resampling.LANCZOS)",
+              "        resized.save(os.path.join(target_dir, \"ic_launcher.png\"))",
+              "        resized.save(os.path.join(target_dir, \"ic_launcher_round.png\"))",
+              "        resized.save(os.path.join(target_dir, \"ic_launcher_foreground.png\"))",
+              "    print(\"Launcher icons successfully updated!\")",
+              "else:",
+              "    print(\"No icon.png found. Retaining default icons.\")"
+            ].join("\n");
+            fs.writeFileSync("make_icons.py", pyCode);
+          '
+          python3 make_icons.py
 
       - name: Inject Android Permissions (Safe Mode)
         run: |
@@ -135,17 +124,14 @@ print("Successfully generated all Android app icons in high quality!")
       - name: Setup Release Keystore & Signing Configuration
         run: |
           cd android
-          # Create official release keystore for Cafe Bazaar publication
           keytool -genkey -v -keystore release.keystore -alias feraslang -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass feraslang2026 -keypass feraslang2026 \
             -dname "CN=FeRaSlang, OU=Development, O=FeRa, L=Tehran, ST=Tehran, C=IR"
 
-          # Configure build.gradle to sign the release APK
           node -e '
             const fs = require("fs");
             const gradleFile = "app/build.gradle";
             let content = fs.readFileSync(gradleFile, "utf8");
-            
             const signingBlock = `
     signingConfigs {
         release {
@@ -156,7 +142,6 @@ print("Successfully generated all Android app icons in high quality!")
         }
     }
             `;
-            
             content = content.replace("buildTypes {", signingBlock + "\n    buildTypes {");
             content = content.replace(/release\s*\{/, "release {\n            signingConfig signingConfigs.release");
             fs.writeFileSync(gradleFile, content, "utf8");
@@ -175,15 +160,12 @@ print("Successfully generated all Android app icons in high quality!")
       - name: Organize Artifact Outputs
         run: |
           mkdir -p output-apks
-          # Copy Debug APK
           if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
             cp android/app/build/outputs/apk/debug/app-debug.apk output-apks/FeRa-Slang-Debug-Test.apk
           fi
-          # Copy Signed Release APK for Cafe Bazaar
           if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
             cp android/app/build/outputs/apk/release/app-release.apk output-apks/FeRa-Slang-Release-Bazaar.apk
           fi
-          # Copy Keystore file for backup
           if [ -f "android/release.keystore" ]; then
             cp android/release.keystore output-apks/feraslang-release.keystore
           fi
