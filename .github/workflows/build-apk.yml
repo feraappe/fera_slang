@@ -1,4 +1,4 @@
-name: Build Android APK & Release (FeRa Slang)
+name: Build Android APK and Release
 
 on:
   push:
@@ -30,14 +30,12 @@ jobs:
           mkdir -p www
           if [ -f "index.html" ]; then
             cp index.html www/index.html
-            echo "Direct index.html detected and copied to www/"
           else
             FOUND=$(find . -name "index.html" -not -path "*/.*" -not -path "*/node_modules/*" | head -n 1)
             if [ -n "$FOUND" ]; then
               cp "$FOUND" www/index.html
-              echo "Discovered index.html at $FOUND and copied to www/"
             else
-              echo "CRITICAL ERROR: index.html not found in repository!"
+              echo "CRITICAL ERROR: index.html not found!"
               exit 1
             fi
           fi
@@ -46,107 +44,51 @@ jobs:
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          cat << 'EOF' > capacitor.config.json
-          {
-            "appId": "com.feraslang.app",
-            "appName": "FeRa Slang",
-            "webDir": "www"
-          }
-          EOF
+          npx cap init "FeRa Slang" "com.feraslang.app" --web-dir "www"
           npx cap add android
 
-      - name: Enforce Java 21 & Configure SDK Environment
+      - name: Enforce Java 21 and Configure SDK
         run: |
           echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
           echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
-      - name: Generate Android App Icons from icon.png
+      - name: Generate App Icons
         run: |
           pip install Pillow
-          node -e '
-            const fs = require("fs");
-            const pyCode = [
-              "import os",
-              "from PIL import Image",
-              "",
-              "icon = \"icon.png\" if os.path.exists(\"icon.png\") else (\"logo.png\" if os.path.exists(\"logo.png\") else None)",
-              "if icon:",
-              "    print(f\"Processing icon: {icon}\")",
-              "    img = Image.open(icon).convert(\"RGBA\")",
-              "    densities = {",
-              "        \"mipmap-mdpi\": 48,",
-              "        \"mipmap-hdpi\": 72,",
-              "        \"mipmap-xhdpi\": 96,",
-              "        \"mipmap-xxhdpi\": 144,",
-              "        \"mipmap-xxxhdpi\": 192",
-              "    }",
-              "    for folder, size in densities.items():",
-              "        target_dir = os.path.join(\"android/app/src/main/res\", folder)",
-              "        os.makedirs(target_dir, exist_ok=True)",
-              "        resized = img.resize((size, size), Image.Resampling.LANCZOS)",
-              "        resized.save(os.path.join(target_dir, \"ic_launcher.png\"))",
-              "        resized.save(os.path.join(target_dir, \"ic_launcher_round.png\"))",
-              "        resized.save(os.path.join(target_dir, \"ic_launcher_foreground.png\"))",
-              "    print(\"Launcher icons successfully updated!\")",
-              "else:",
-              "    print(\"No icon.png found. Retaining default icons.\")"
-            ].join("\n");
-            fs.writeFileSync("make_icons.py", pyCode);
-          '
+          echo 'import os' > make_icons.py
+          echo 'from PIL import Image' >> make_icons.py
+          echo 'target_icon = "icon.png" if os.path.exists("icon.png") else ("logo.png" if os.path.exists("logo.png") else None)' >> make_icons.py
+          echo 'if target_icon:' >> make_icons.py
+          echo '    img = Image.open(target_icon).convert("RGBA")' >> make_icons.py
+          echo '    densities = [("mipmap-mdpi", 48), ("mipmap-hdpi", 72), ("mipmap-xhdpi", 96), ("mipmap-xxhdpi", 144), ("mipmap-xxxhdpi", 192)]' >> make_icons.py
+          echo '    for folder, size in densities:' >> make_icons.py
+          echo '        target_dir = os.path.join("android/app/src/main/res", folder)' >> make_icons.py
+          echo '        os.makedirs(target_dir, exist_ok=True)' >> make_icons.py
+          echo '        resized = img.resize((size, size), Image.Resampling.LANCZOS)' >> make_icons.py
+          echo '        resized.save(os.path.join(target_dir, "ic_launcher.png"))' >> make_icons.py
+          echo '        resized.save(os.path.join(target_dir, "ic_launcher_round.png"))' >> make_icons.py
+          echo '        resized.save(os.path.join(target_dir, "ic_launcher_foreground.png"))' >> make_icons.py
+          echo '    print("Launcher icons generated successfully!")' >> make_icons.py
+          echo 'else:' >> make_icons.py
+          echo '    print("No icon.png found, keeping default icons.")' >> make_icons.py
           python3 make_icons.py
 
-      - name: Inject Android Permissions (Safe Mode)
+      - name: Inject Android Permissions
         run: |
-          node -e '
-            const fs = require("fs");
-            const file = "android/app/src/main/AndroidManifest.xml";
-            if (fs.existsSync(file)) {
-              let xml = fs.readFileSync(file, "utf8");
-              const perms = [
-                "android.permission.INTERNET",
-                "android.permission.RECORD_AUDIO",
-                "android.permission.MODIFY_AUDIO_SETTINGS"
-              ];
-              let added = "";
-              perms.forEach(p => {
-                if (!xml.includes(p)) {
-                  added += `\n    <uses-permission android:name="${p}" />`;
-                }
-              });
-              if (added) {
-                xml = xml.replace("<application", added + "\n    <application");
-                fs.writeFileSync(file, xml, "utf8");
-                console.log("Permissions injected safely without duplicates.");
-              }
-            }
-          '
+          echo 'const fs = require("fs");' > add_perms.js
+          echo 'const file = "android/app/src/main/AndroidManifest.xml";' >> add_perms.js
+          echo 'if (fs.existsSync(file)) {' >> add_perms.js
+          echo '  let xml = fs.readFileSync(file, "utf8");' >> add_perms.js
+          echo '  const perms = ["android.permission.INTERNET", "android.permission.RECORD_AUDIO", "android.permission.MODIFY_AUDIO_SETTINGS"];' >> add_perms.js
+          echo '  let added = "";' >> add_perms.js
+          echo '  perms.forEach(p => { if (!xml.includes(p)) added += "\n    <uses-permission android:name=\"" + p + "\" />"; });' >> add_perms.js
+          echo '  if (added) { xml = xml.replace("<application", added + "\n    <application"); fs.writeFileSync(file, xml, "utf8"); }' >> add_perms.js
+          echo '}' >> add_perms.js
+          node add_perms.js
 
-      - name: Setup Release Keystore & Signing Configuration
+      - name: Generate Release Keystore
         run: |
-          cd android
-          keytool -genkey -v -keystore release.keystore -alias feraslang -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass feraslang2026 -keypass feraslang2026 \
-            -dname "CN=FeRaSlang, OU=Development, O=FeRa, L=Tehran, ST=Tehran, C=IR"
-
-          node -e '
-            const fs = require("fs");
-            const gradleFile = "app/build.gradle";
-            let content = fs.readFileSync(gradleFile, "utf8");
-            const signingBlock = `
-    signingConfigs {
-        release {
-            storeFile file("../release.keystore")
-            storePassword "feraslang2026"
-            keyAlias "feraslang"
-            keyPassword "feraslang2026"
-        }
-    }
-            `;
-            content = content.replace("buildTypes {", signingBlock + "\n    buildTypes {");
-            content = content.replace(/release\s*\{/, "release {\n            signingConfig signingConfigs.release");
-            fs.writeFileSync(gradleFile, content, "utf8");
-            console.log("Configured release signing in build.gradle");
-          '
+          keytool -genkeypair -v -keystore android/release.keystore -alias feraslang -keyalg RSA -keysize 2048 -validity 10000 -storepass feraslang2026 -keypass feraslang2026 -dname "CN=FeRaSlang, OU=App, O=FeRa, L=Tehran, ST=Tehran, C=IR"
 
       - name: Build Both Debug and Release APKs
         env:
@@ -157,20 +99,26 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug assembleRelease --no-daemon
 
-      - name: Organize Artifact Outputs
+      - name: Align and Sign Release APK with apksigner
         run: |
           mkdir -p output-apks
           if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
             cp android/app/build/outputs/apk/debug/app-debug.apk output-apks/FeRa-Slang-Debug-Test.apk
           fi
-          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+          BUILD_TOOLS=$(ls -d /usr/local/lib/android/sdk/build-tools/* | sort -V | tail -n 1)
+          UNSIGNED_APK="android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          if [ -f "$UNSIGNED_APK" ]; then
+            $BUILD_TOOLS/zipalign -v -p 4 "$UNSIGNED_APK" android/app/build/outputs/apk/release/app-release-aligned.apk
+            $BUILD_TOOLS/apksigner sign --ks android/release.keystore --ks-pass pass:feraslang2026 --ks-key-alias feraslang --key-pass pass:feraslang2026 --out output-apks/FeRa-Slang-Release-Bazaar.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+            echo "Release APK signed and aligned successfully!"
+          elif [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
             cp android/app/build/outputs/apk/release/app-release.apk output-apks/FeRa-Slang-Release-Bazaar.apk
           fi
           if [ -f "android/release.keystore" ]; then
             cp android/release.keystore output-apks/feraslang-release.keystore
           fi
 
-      - name: Upload APKs & Keystore to Artifacts
+      - name: Upload APKs and Keystore to Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: FeRa-Slang-Official-Package
