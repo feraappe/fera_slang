@@ -1,4 +1,4 @@
-name: Build Android APK (FeRa Slang)
+name: Build Android APK & Release (FeRa Slang)
 
 on:
   push:
@@ -14,35 +14,40 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Setup Java JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Verify and Prepare Web Assets
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Python for Image Processing
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Prepare Web Directory
         run: |
           mkdir -p www
           if [ -f "index.html" ]; then
             cp index.html www/index.html
-            echo "Successfully found and copied index.html"
+            echo "Direct index.html detected and copied to www/"
           else
-            FOUND=$(find . -name "index.html" -not -path "*/.*" | head -n 1)
+            FOUND=$(find . -name "index.html" -not -path "*/.*" -not -path "*/node_modules/*" | head -n 1)
             if [ -n "$FOUND" ]; then
               cp "$FOUND" www/index.html
-              echo "Found index.html at $FOUND and copied to www/"
+              echo "Discovered index.html at $FOUND and copied to www/"
             else
-              echo "ERROR: index.html not found in repository! Please upload index.html."
+              echo "CRITICAL ERROR: index.html not found in repository!"
               exit 1
             fi
           fi
 
-      - name: Setup Capacitor and Android Project
+      - name: Initialize Capacitor Project
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
@@ -54,36 +59,137 @@ jobs:
           }
           EOF
           npx cap add android
+
+      - name: Enforce Java 21 & Configure SDK Environment
+        run: |
           echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
           echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
-      - name: Configure Android Permissions
+      - name: Generate Android App Icons from icon.png
+        run: |
+          ICON_FILE=""
+          if [ -f "icon.png" ]; then
+            ICON_FILE="icon.png"
+          elif [ -f "logo.png" ]; then
+            ICON_FILE="logo.png"
+          fi
+
+          if [ -n "$ICON_FILE" ]; then
+            echo "Logo file detected: $ICON_FILE. Generating Android launcher icons..."
+            pip install Pillow
+            python3 -c '
+import os
+from PIL import Image
+
+icon_path = "'"$ICON_FILE"'"
+img = Image.open(icon_path).convert("RGBA")
+
+densities = {
+    "mipmap-mdpi": 48,
+    "mipmap-hdpi": 72,
+    "mipmap-xhdpi": 96,
+    "mipmap-xxhdpi": 144,
+    "mipmap-xxxhdpi": 192
+}
+
+for folder, size in densities.items():
+    target_dir = os.path.join("android/app/src/main/res", folder)
+    os.makedirs(target_dir, exist_ok=True)
+    resized = img.resize((size, size), Image.Resampling.LANCZOS)
+    resized.save(os.path.join(target_dir, "ic_launcher.png"))
+    resized.save(os.path.join(target_dir, "ic_launcher_round.png"))
+    resized.save(os.path.join(target_dir, "ic_launcher_foreground.png"))
+
+print("Successfully generated all Android app icons in high quality!")
+'
+          else
+            echo "No custom icon.png detected. Proceeding with default icons."
+          fi
+
+      - name: Inject Android Permissions (Safe Mode)
         run: |
           node -e '
             const fs = require("fs");
             const file = "android/app/src/main/AndroidManifest.xml";
             if (fs.existsSync(file)) {
               let xml = fs.readFileSync(file, "utf8");
-              const perms = "\n    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />\n    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />\n";
-              if (!xml.includes("RECORD_AUDIO")) {
-                xml = xml.replace("<application", perms + "    <application");
+              const perms = [
+                "android.permission.INTERNET",
+                "android.permission.RECORD_AUDIO",
+                "android.permission.MODIFY_AUDIO_SETTINGS"
+              ];
+              let added = "";
+              perms.forEach(p => {
+                if (!xml.includes(p)) {
+                  added += `\n    <uses-permission android:name="${p}" />`;
+                }
+              });
+              if (added) {
+                xml = xml.replace("<application", added + "\n    <application");
                 fs.writeFileSync(file, xml, "utf8");
-                console.log("Audio permissions injected successfully.");
+                console.log("Permissions injected safely without duplicates.");
               }
             }
           '
 
-      - name: Build Debug APK
+      - name: Setup Release Keystore & Signing Configuration
+        run: |
+          cd android
+          # Create official release keystore for Cafe Bazaar publication
+          keytool -genkey -v -keystore release.keystore -alias feraslang -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass feraslang2026 -keypass feraslang2026 \
+            -dname "CN=FeRaSlang, OU=Development, O=FeRa, L=Tehran, ST=Tehran, C=IR"
+
+          # Configure build.gradle to sign the release APK
+          node -e '
+            const fs = require("fs");
+            const gradleFile = "app/build.gradle";
+            let content = fs.readFileSync(gradleFile, "utf8");
+            
+            const signingBlock = `
+    signingConfigs {
+        release {
+            storeFile file("../release.keystore")
+            storePassword "feraslang2026"
+            keyAlias "feraslang"
+            keyPassword "feraslang2026"
+        }
+    }
+            `;
+            
+            content = content.replace("buildTypes {", signingBlock + "\n    buildTypes {");
+            content = content.replace(/release\s*\{/, "release {\n            signingConfig signingConfigs.release");
+            fs.writeFileSync(gradleFile, content, "utf8");
+            console.log("Configured release signing in build.gradle");
+          '
+
+      - name: Build Both Debug and Release APKs
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug assembleRelease --no-daemon
 
-      - name: Upload APK to Artifacts
+      - name: Organize Artifact Outputs
+        run: |
+          mkdir -p output-apks
+          # Copy Debug APK
+          if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp android/app/build/outputs/apk/debug/app-debug.apk output-apks/FeRa-Slang-Debug-Test.apk
+          fi
+          # Copy Signed Release APK for Cafe Bazaar
+          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk output-apks/FeRa-Slang-Release-Bazaar.apk
+          fi
+          # Copy Keystore file for backup
+          if [ -f "android/release.keystore" ]; then
+            cp android/release.keystore output-apks/feraslang-release.keystore
+          fi
+
+      - name: Upload APKs & Keystore to Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: FeRa-Slang-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: FeRa-Slang-Official-Package
+          path: output-apks/
