@@ -104,7 +104,7 @@
             <button onclick="openApiKeyModal()" title="تنظیم کلید شخصی Google AI" class="px-3 py-1.5 rounded-xl transition text-xs font-semibold flex items-center gap-1.5 border border-slate-200/80 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-brand-500">
                 <span id="apiKeyHeaderDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
                 <i class="fa-brands fa-google text-xs text-rose-500"></i>
-                <span class="hidden sm:inline">کلید شخصی من</span>
+                <span class="hidden sm:inline">کلید شخصی</span>
                 <span id="apiKeyHeaderCheck" class="hidden text-emerald-500 font-bold text-xs"><i class="fa-solid fa-check"></i></span>
             </button>
 
@@ -266,7 +266,7 @@
                 </div>
                 <h3 class="font-bold text-slate-800 dark:text-white text-base mb-1">آماده ترجمه اصطلاحات شما</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed mb-6">
-                    یک جمله یا اصطلاح عامیانه به فارسی بنویسید یا بگویید تا دقیقاً معادل‌های بومی روزمره انگلیسی به همراه ایموجی و نمونه گفتگو نمایش داده شود.
+                    یک جمله یا اصطلاح عامیانه به فارسی بنویسید یا بگویید تا معادل‌های بومی روزمره انگلیسی به همراه ایموجی و نمونه گفتگو نمایش داده شود.
                 </p>
                 <button onclick="fillExample('چشمم آب نمی‌خوره')" class="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1.5">
                     <span>امتحان با «چشمم آب نمی‌خوره»</span>
@@ -423,7 +423,7 @@
     </div>
 </div>
 
-<!-- Personal Google AI Key Modal (User Facing) -->
+<!-- Personal Google AI Key Modal -->
 <div id="apiKeyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
     <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4">
         
@@ -491,11 +491,7 @@
 </div>
 
 <script>
-    // =========================================================================
-    // DEVELOPER INFRASTRUCTURE (Completely hidden from user interface)
-    // Tier 1: Cloudflare Anti-Sanction Worker
-    // Tier 2: Free Public LLM Engine
-    // =========================================================================
+    // Developer Backend Cloud
     const DEVELOPER_CLOUDFLARE_WORKER = "https://feraslang-api.fera-appe.workers.dev";
 
     // Application State
@@ -574,7 +570,7 @@
         }
     }
 
-    // Modal Control: Personal API Key Only
+    // Modal Control
     function openApiKeyModal() {
         const modal = document.getElementById('apiKeyModal');
         const savedKey = localStorage.getItem('feraslang_personal_gemini_key') || '';
@@ -590,7 +586,6 @@
         modal.classList.add('opacity-0', 'pointer-events-none');
     }
 
-    // UI State for Personal API Key
     function updatePersonalKeyStatusUI() {
         const key = localStorage.getItem('feraslang_personal_gemini_key');
         const headerDot = document.getElementById('apiKeyHeaderDot');
@@ -641,14 +636,26 @@
         verifyIcon.className = "fa-solid fa-circle-notch fa-spin";
 
         try {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${inputKey}`;
-            const testBody = { contents: [{ parts: [{ text: "OK" }] }] };
-
-            const res = await fetch(endpoint, {
+            // تست از طریق ورکر کلادفلر جهت دور زدن تحریم گوگل حتی در حالت تست کلید
+            const testPayload = { contents: [{ parts: [{ text: "ping" }] }] };
+            let res = await fetch(DEVELOPER_CLOUDFLARE_WORKER, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(testBody)
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-api-key': inputKey
+                },
+                body: JSON.stringify(testPayload)
             });
+
+            // اگر ورکر در دسترس نبود، تلاش مستقیم
+            if (!res.ok && res.status !== 400) {
+                const directEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${inputKey}`;
+                res = await fetch(directEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testPayload)
+                });
+            }
 
             if (res.ok) {
                 localStorage.setItem('feraslang_personal_gemini_key', inputKey);
@@ -656,16 +663,17 @@
                 showToast("کلید اختصاصی تایید و با موفقیت فعال شد ✅", "success");
                 setTimeout(closeApiKeyModal, 500);
             } else {
+                const errData = await res.json().catch(() => ({}));
                 if (res.status === 403) {
-                    showToast("خطای ۴۰۳ (تحریم گوگل): هنگام استفاده از کلید شخصی، فیلترشکن باید روشن باشد.", "error");
+                    showToast("خطای ۴۰۳ تحریم گوگل: لطفاً از اتصال فیلترشکن اطمینان حاصل کنید.", "error");
                 } else if (res.status === 400) {
                     showToast("کلید وارد شده نامعتبر است (Invalid API Key).", "error");
                 } else {
-                    showToast(`خطای پاسخ از گوگل: ${res.status}`, "error");
+                    showToast(`خطای سرور: ${errData.message || res.status}`, "error");
                 }
             }
         } catch (err) {
-            showToast("خطا در برقراری ارتباط با گوگل. لطفاً اتصال اینترنت خود را بررسی کنید.", "error");
+            showToast("خطا در ارسال درخواست تایید به سرور.", "error");
         } finally {
             verifyBtn.disabled = false;
             verifyIcon.className = "fa-solid fa-circle-check";
@@ -679,7 +687,6 @@
         showToast("کلید اختصاصی حذف شد؛ سیستم به سرور خودکار بازگشت.", "info");
     }
 
-    // Android Native Back Handler
     function initAndroidAppSupport() {
         document.addEventListener('backbutton', function(e) {
             const drawer = document.getElementById('savedDrawer');
@@ -747,7 +754,7 @@
         document.getElementById('inputText').focus();
     }
 
-    // Speech Recognition
+    // Voice Input Engine
     function initSpeechRecognition() {
         const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRec) {
@@ -904,13 +911,10 @@
     }
 
     // =========================================================================
-    // INTELLIGENT ROUTER:
-    // 1. Personal Key (if user provided one)
-    // 2. Developer Cloudflare Worker (default background)
-    // 3. Silent Zero-Config Fallback (automatic backup)
+    // INTELLIGENT AI PIPELINE (With Diagnostic Reporting)
     // =========================================================================
     async function fetchAiTranslation(inputPhrase, tone, direction) {
-        const personalKey = localStorage.getItem('feraslang_personal_gemini_key');
+        const personalKey = localStorage.getItem('feraslang_personal_gemini_key') || '';
 
         const systemPrompt = `You are a bilingual Persian-English conversational lexicographer and street slang translator. Translate colloquial idioms, sarcasm, and everyday dialogue naturally. Always respond ONLY in valid raw JSON with this exact schema:
 {
@@ -927,29 +931,25 @@
     "speakerB_fa": "ترجمه خط B به فارسی"
   }
 }`;
-        const userPrompt = `Direction: ${direction === 'fa-en' ? 'Persian to English Slang/Idiom' : 'English to Colloquial Persian'}. Tone: ${tone}. Phrase: "${inputPhrase}". Respond ONLY with the JSON object.`;
+        const userPrompt = `Direction: ${direction === 'fa-en' ? 'Persian to English Slang/Idiom' : 'English to Colloquial Persian'}. Tone: ${tone}. Phrase: "${inputPhrase}". Output RAW JSON ONLY.`;
 
-        // 1. If user has active personal Google AI key:
-        if (personalKey) {
-            try {
-                return await callGoogleDirectApi(personalKey, systemPrompt, userPrompt);
-            } catch (proError) {
-                console.warn("User personal key failed, silently routing through developer cloud...", proError);
-            }
-        }
+        let lastDiagnostic = "";
 
-        // 2. Background Primary: Developer Cloudflare Worker
+        // لایه ۱: اتصال به ورکر کلادفلر (با امکان ارسال کلید شخصی یا کلید پیش‌فرض ورکر)
         try {
             const payload = {
                 contents: [{ parts: [{ text: `${systemPrompt}\n\nTask: ${userPrompt}` }] }]
             };
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (personalKey) headers['x-api-key'] = personalKey;
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 12000);
 
             const res = await fetch(DEVELOPER_CLOUDFLARE_WORKER, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify(payload),
                 signal: controller.signal
             });
@@ -958,66 +958,72 @@
             if (res.ok) {
                 const data = await res.json();
                 const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) return JSON.parse(cleanJsonResponse(text));
+                if (text) {
+                    const parsed = extractJson(text);
+                    if (parsed && parsed.primaryTranslation) return parsed;
+                }
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                lastDiagnostic = `ورکر کد ${res.status}: ${errData.message || res.statusText}`;
+                console.warn("Worker error:", lastDiagnostic);
             }
         } catch (cfErr) {
-            console.warn("Developer worker bypassed, falling back to silent engine...", cfErr);
+            lastDiagnostic = "عدم برقراری ارتباط با ورکر کلادفلر";
+            console.warn(lastDiagnostic, cfErr);
         }
 
-        // 3. Background Secondary: Zero-Config Free Engine
+        // لایه ۲: موتور پشتیبان دوم مبتنی بر POST
         try {
-            const fullPrompt = `${systemPrompt}\n\nTask: ${userPrompt}\nImportant: Output MUST be valid JSON only.`;
-            const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?json=true&model=openai`;
+            const messages = [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt }
+            ];
 
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 18000);
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-            const res = await fetch(pollinationsUrl, { signal: controller.signal });
+            const fallbackRes = await fetch("https://text.pollinations.ai/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: messages,
+                    model: "openai",
+                    jsonMode: true
+                }),
+                signal: controller.signal
+            });
             clearTimeout(timeoutId);
 
-            if (!res.ok) throw new Error("BUSY");
-            const rawText = await res.text();
-            return JSON.parse(cleanJsonResponse(rawText));
+            if (fallbackRes.ok) {
+                const rawText = await fallbackRes.text();
+                const parsed = extractJson(rawText);
+                if (parsed && parsed.primaryTranslation) return parsed;
+            } else {
+                lastDiagnostic = `سرور پشتیبان کد ${fallbackRes.status}`;
+            }
         } catch (fallbackError) {
-            console.error("All translation servers busy:", fallbackError);
-            throw new Error("TRANSLATION_FAILED");
-        }
-    }
-
-    async function callGoogleDirectApi(apiKey, systemPrompt, userPrompt) {
-        const combinedPrompt = `${systemPrompt}\n\nTask: ${userPrompt}`;
-        const payload = { contents: [{ parts: [{ text: combinedPrompt }] }] };
-
-        let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        let res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (res.status === 404) {
-            endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            lastDiagnostic = lastDiagnostic || "اختلال موقت در پاسخگویی سرورها";
+            console.error("Fallback error:", fallbackError);
         }
 
-        if (!res.ok) throw new Error(`Google API responded with ${res.status}`);
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error("Empty response");
-        return JSON.parse(cleanJsonResponse(text));
+        // اگر هر دو لایه ناموفق بودند، پرتاب خطای دقیق به همراه دلیل
+        throw new Error(lastDiagnostic || "TRANSLATION_FAILED");
     }
 
-    function cleanJsonResponse(str) {
-        if (!str) return "{}";
-        let cleaned = str.trim();
-        if (cleaned.startsWith("```json")) cleaned = cleaned.replace(/^```json/, "");
-        if (cleaned.startsWith("```")) cleaned = cleaned.replace(/^```/, "");
-        if (cleaned.endsWith("```")) cleaned = cleaned.replace(/```$/, "");
-        return cleaned.trim();
+    // استخراج فوق‌العاده پایدار JSON بدون آسیب‌پذیری در برابر کاراکترهای اسکیپ و بک‌تیک‌ها
+    function extractJson(text) {
+        if (!text) return null;
+        try {
+            // پیدا کردن محدوده بین اولین { و آخرین }
+            const match = text.match(/\{[\s\S]*\}/);
+            if (match) {
+                return JSON.parse(match[0]);
+            }
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("JSON parse failure on:", text);
+            return null;
+        }
     }
 
     async function performTranslation() {
@@ -1037,7 +1043,7 @@
         resultCard.classList.add('hidden');
         loadingState.classList.remove('hidden');
         translateBtn.disabled = true;
-        document.getElementById('btnText').textContent = "در حال دریافت ترجمه...";
+        document.getElementById('btnText').textContent = "در حال پردازش دیالوگ...";
         document.getElementById('btnIcon').className = "fa-solid fa-circle-notch fa-spin text-xs";
 
         try {
@@ -1053,8 +1059,9 @@
                 setTimeout(() => speakCurrentResult(), 400);
             }
         } catch (error) {
-            console.error("AI error:", error);
-            showToast("خطا در برقراری ارتباط، لطفاً اتصال اینترنت خود را بررسی نمایید.", "error");
+            console.error("AI pipeline error:", error);
+            // نمایش خطای شفاف به جای پیام مبهم قطع اینترنت
+            showToast(error.message || "پاسخی از هوش مصنوعی دریافت نشد، لطفاً دوباره امتحان کنید.", "error");
             loadingState.classList.add('hidden');
             emptyState.classList.remove('hidden');
         } finally {
@@ -1420,7 +1427,7 @@
         setTimeout(() => {
             toast.classList.remove('translate-y-0', 'opacity-100');
             toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
-        }, 3500);
+        }, 4000);
     }
 
     function escapeHtml(str) {
