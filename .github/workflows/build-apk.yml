@@ -17,52 +17,61 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Setup Java JDK
+      - name: Setup Java JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
-      - name: Accept Android SDK Licenses
+      - name: Verify and Prepare Web Assets
         run: |
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          mkdir -p www
+          if [ -f "index.html" ]; then
+            cp index.html www/index.html
+            echo "Successfully found and copied index.html"
+          else
+            FOUND=$(find . -name "index.html" -not -path "*/.*" | head -n 1)
+            if [ -n "$FOUND" ]; then
+              cp "$FOUND" www/index.html
+              echo "Found index.html at $FOUND and copied to www/"
+            else
+              echo "ERROR: index.html not found in repository! Please upload index.html."
+              exit 1
+            fi
+          fi
 
-      - name: Setup Capacitor & Config
+      - name: Setup Capacitor and Android Project
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          mkdir -p www
-          cp index.html www/index.html
           cat << 'EOF' > capacitor.config.json
           {
             "appId": "com.feraslang.app",
             "appName": "FeRa Slang",
-            "webDir": "www",
-            "bundledWebRuntime": false
+            "webDir": "www"
           }
           EOF
           npx cap add android
           echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
+          echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
-      - name: Inject Android Permissions
+      - name: Configure Android Permissions
         run: |
-          node -e "
-            const fs = require('fs');
-            const file = 'android/app/src/main/AndroidManifest.xml';
-            let xml = fs.readFileSync(file, 'utf8');
-            const perms = [
-              '    <uses-permission android:name=\"android.permission.INTERNET\" />',
-              '    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />',
-              '    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />'
-            ].join('\n');
-            if (!xml.includes('android.permission.RECORD_AUDIO')) {
-              xml = xml.replace(/<application/i, perms + '\n    <application');
-              fs.writeFileSync(file, xml, 'utf8');
-              console.log('Permissions injected successfully!');
+          node -e '
+            const fs = require("fs");
+            const file = "android/app/src/main/AndroidManifest.xml";
+            if (fs.existsSync(file)) {
+              let xml = fs.readFileSync(file, "utf8");
+              const perms = "\n    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />\n    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />\n";
+              if (!xml.includes("RECORD_AUDIO")) {
+                xml = xml.replace("<application", perms + "    <application");
+                fs.writeFileSync(file, xml, "utf8");
+                console.log("Audio permissions injected successfully.");
+              }
             }
-          "
+          '
 
       - name: Build Debug APK
         env:
