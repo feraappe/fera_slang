@@ -1,4 +1,4 @@
-name: Build Android APK (Anti-WhiteScreen)
+name: Build Android APK
 
 on:
 push:
@@ -47,17 +47,17 @@ uses: actions/checkout@v4
       npm init -y
       npm install @capacitor/core @capacitor/cli @capacitor/android
       node -e '
-      const fs = require("fs");
-      const config = {
-        appId: "com.feraslang.app",
-        appName: "FeRa Slang",
-        webDir: "www",
-        backgroundColor: "#07070d",
-        server: {
-          cleartext: true
-        }
-      };
-      fs.writeFileSync("capacitor.config.json", JSON.stringify(config, null, 2));
+        const fs = require("fs");
+        const config = {
+          appId: "com.feraslang.app",
+          appName: "FeRa Slang",
+          webDir: "www",
+          backgroundColor: "#07070d",
+          server: {
+            cleartext: true
+          }
+        };
+        fs.writeFileSync("capacitor.config.json", JSON.stringify(config, null, 2));
       '
       npx cap add android
       npx cap sync android
@@ -67,7 +67,6 @@ uses: actions/checkout@v4
     run: |
       mkdir -p android/app/src/main/assets/public
       cp -r www/* android/app/src/main/assets/public/
-      echo "Verifying assets in Android assets directory:"
       ls -la android/app/src/main/assets/public/index.html
 
   - name: Fast Gradle Config
@@ -113,37 +112,37 @@ uses: actions/checkout@v4
           print("No icon.png found, retaining default icons.")
       '
 
-  - name: Update AndroidManifest Permissions & Hardware Settings
+  - name: Update AndroidManifest Permissions
     run: |
       node -e '
-      const fs = require("fs");
-      const path = "android/app/src/main/AndroidManifest.xml";
-      if (fs.existsSync(path)) {
-        let xml = fs.readFileSync(path, "utf8");
-        const perms = [
-          "android.permission.INTERNET",
-          "android.permission.ACCESS_NETWORK_STATE",
-          "android.permission.RECORD_AUDIO",
-          "android.permission.MODIFY_AUDIO_SETTINGS"
-        ];
-        let toAdd = "";
-        perms.forEach(p => {
-          if (!xml.includes(p)) {
-            toAdd += `\n    <uses-permission android:name="${p}" />`;
+        const fs = require("fs");
+        const path = "android/app/src/main/AndroidManifest.xml";
+        if (fs.existsSync(path)) {
+          let xml = fs.readFileSync(path, "utf8");
+          const perms = [
+            "android.permission.INTERNET",
+            "android.permission.ACCESS_NETWORK_STATE",
+            "android.permission.RECORD_AUDIO",
+            "android.permission.MODIFY_AUDIO_SETTINGS"
+          ];
+          let toAdd = "";
+          perms.forEach(p => {
+            if (!xml.includes(p)) {
+              toAdd += `\n    <uses-permission android:name="${p}" />`;
+            }
+          });
+          if (toAdd) {
+            xml = xml.replace("<application", toAdd + "\n    <application");
           }
-        });
-        if (toAdd) {
-          xml = xml.replace("<application", toAdd + "\n    <application");
+          if (!xml.includes("android:usesCleartextTraffic")) {
+            xml = xml.replace("<application", `<application android:usesCleartextTraffic="true"`);
+          }
+          if (!xml.includes("android:hardwareAccelerated")) {
+            xml = xml.replace("<application", `<application android:hardwareAccelerated="true"`);
+          }
+          fs.writeFileSync(path, xml, "utf8");
+          console.log("Manifest successfully updated.");
         }
-        if (!xml.includes("android:usesCleartextTraffic")) {
-          xml = xml.replace("<application", `<application android:usesCleartextTraffic="true"`);
-        }
-        if (!xml.includes("android:hardwareAccelerated")) {
-          xml = xml.replace("<application", `<application android:hardwareAccelerated="true"`);
-        }
-        fs.writeFileSync(path, xml, "utf8");
-        console.log("Manifest successfully updated with clean settings.");
-      }
       '
 
   - name: Generate Release Keystore
