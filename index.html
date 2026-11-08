@@ -1,44 +1,38 @@
 <style>
-    /* =====================================================================
-       استایل‌های پایه و متغیرهای طراحی Liquid Glass (کاملاً مستقل و آفلاین)
-       ===================================================================== */
+    /* متغیرهای گرافیکی Liquid Glass با مقداردهی مستقیم */
     :root {
         --sat: env(safe-area-inset-top, 0px);
         --sab: env(safe-area-inset-bottom, 0px);
         
-        /* تم روز (Light) */
         --bg-base: #f0f3fa;
         --text-main: #0f172a;
         --text-muted: #64748b;
-        --glass-bg: rgba(255, 255, 255, 0.82);
+        --glass-bg: rgba(255, 255, 255, 0.85);
         --glass-border: rgba(255, 255, 255, 0.9);
         --glass-inner-bg: rgba(0, 0, 0, 0.04);
-        --glass-inner-border: rgba(0, 0, 0, 0.06);
+        --glass-inner-border: rgba(0, 0, 0, 0.08);
         --glass-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
-        --header-bg: rgba(240, 243, 250, 0.88);
-        --header-border: rgba(0, 0, 0, 0.06);
+        --header-bg: rgba(240, 243, 250, 0.92);
+        --header-border: rgba(0, 0, 0, 0.08);
         
-        /* رنگ‌های برند و نئونی */
         --blue: #0A84FF;
         --indigo: #5E5CE6;
         --purple: #BF5AF2;
         --pink: #FF375F;
-        --cyan: #64D2FF;
         --emerald: #30D158;
         --amber: #FFD60A;
     }
 
-    html.dark {
-        /* تم شب (Dark) */
+    html.dark, body.dark {
         --bg-base: #07070d;
         --text-main: #f8fafc;
         --text-muted: #94a3b8;
-        --glass-bg: linear-gradient(135deg, rgba(26, 26, 42, 0.72) 0%, rgba(12, 12, 22, 0.82) 100%);
+        --glass-bg: rgba(24, 24, 38, 0.82);
         --glass-border: rgba(255, 255, 255, 0.12);
-        --glass-inner-bg: rgba(255, 255, 255, 0.05);
+        --glass-inner-bg: rgba(255, 255, 255, 0.06);
         --glass-inner-border: rgba(255, 255, 255, 0.08);
         --glass-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
-        --header-bg: rgba(7, 7, 13, 0.85);
+        --header-bg: rgba(7, 7, 13, 0.9);
         --header-border: rgba(255, 255, 255, 0.08);
     }
 
@@ -47,9 +41,7 @@
         margin: 0;
         padding: 0;
         -webkit-tap-highlight-color: transparent;
-        scrollbar-width: none;
     }
-    *::-webkit-scrollbar { display: none; }
 
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", Tahoma, sans-serif;
@@ -60,19 +52,16 @@
         flex-direction: column;
         user-select: none;
         overflow-x: hidden;
-        transition: background-color 0.3s ease, color 0.3s ease;
         padding-bottom: max(36px, var(--sab));
     }
 
-    /* بافت شیشه‌ای مات و مایع Liquid Glass */
     .liquid-glass {
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         box-shadow: var(--glass-shadow);
-        backdrop-filter: blur(28px) saturate(190%);
-        -webkit-backdrop-filter: blur(28px) saturate(190%);
-        border-radius: 28px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-radius: 26px;
     }
 
     .safe-top-header {
@@ -82,16 +71,14 @@
     .liquid-header {
         background: var(--header-bg);
         border-bottom: 1px solid var(--header-border);
-        backdrop-filter: blur(34px) saturate(200%);
-        -webkit-backdrop-filter: blur(34px) saturate(200%);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
         position: sticky;
         top: 0;
         z-index: 40;
         width: 100%;
-        transition: all 0.3s ease;
     }
 
-    /* دکمه‌های کپسولی شیشه‌ای */
     .glass-pill {
         background: var(--glass-inner-bg);
         border: 1px solid var(--glass-inner-border);
@@ -103,14 +90,12 @@
         justify-content: center;
         font-size: 12px;
         font-weight: 600;
-        transition: all 0.15s ease;
     }
     .glass-pill:active { transform: scale(0.96); }
 
-    /* پالس صوتی سبک Siri */
     @keyframes voicePulse {
         0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 55, 95, 0.7); }
-        70% { transform: scale(1.08); box-shadow: 0 0 0 22px rgba(255, 55, 95, 0); }
+        70% { transform: scale(1.08); box-shadow: 0 0 0 20px rgba(255, 55, 95, 0); }
         100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 55, 95, 0); }
     }
     .voice-active {
@@ -118,17 +103,6 @@
         background: linear-gradient(135deg, #FF375F, #E11D48) !important;
     }
 
-    /* هاله‌های نوری شناور پس‌زمینه */
-    .ambient-glow {
-        position: fixed;
-        pointer-events: none;
-        z-index: 0;
-        filter: blur(90px);
-        opacity: 0.5;
-        border-radius: 50%;
-    }
-
-    /* چینش المان‌ها */
     .container {
         max-width: 580px;
         margin: 0 auto;
@@ -138,27 +112,23 @@
 
     .flex-between { display: flex; align-items: center; justify-content: space-between; }
     .flex-center { display: flex; align-items: center; justify-content: center; }
-    .gap-2 { gap: 8px; }
-    .gap-3 { gap: 12px; }
 
-    /* حباب‌های چت مدرن دیالوگ */
     .chat-bubble-a {
         background: var(--glass-inner-bg);
         border: 1px solid var(--glass-inner-border);
-        border-radius: 20px 20px 20px 4px;
+        border-radius: 18px 18px 18px 4px;
         padding: 12px 14px;
-        max-width: 88%;
+        max-width: 90%;
     }
     .chat-bubble-b {
-        background: linear-gradient(135deg, rgba(10, 132, 255, 0.18), rgba(191, 90, 242, 0.18));
+        background: rgba(10, 132, 255, 0.15);
         border: 1px solid rgba(10, 132, 255, 0.35);
-        border-radius: 20px 20px 4px 20px;
+        border-radius: 18px 18px 4px 18px;
         padding: 12px 14px;
-        max-width: 88%;
+        max-width: 90%;
         margin-right: auto;
     }
 
-    /* ماژول چیپ‌های لحن */
     .tone-btn {
         padding: 6px 14px;
         border-radius: 12px;
@@ -169,16 +139,13 @@
         border: 1px solid var(--glass-inner-border);
         color: var(--text-muted);
         white-space: nowrap;
-        transition: all 0.2s;
     }
     .tone-btn.active {
         background: var(--blue);
         color: #ffffff;
         border-color: var(--blue);
-        box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
     }
 
-    /* فیلد متن اصلی */
     .slang-textarea {
         width: 100%;
         background: transparent;
@@ -193,7 +160,6 @@
     }
     .slang-textarea::placeholder { color: var(--text-muted); opacity: 0.7; }
 
-    /* دکمه اصلی ترجمه */
     .btn-translate {
         width: 100%;
         padding: 14px;
@@ -204,67 +170,54 @@
         font-size: 14px;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 10px 25px rgba(94, 92, 230, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        transition: transform 0.15s ease, opacity 0.2s;
     }
     .btn-translate:active { transform: scale(0.98); }
-    .btn-translate:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-translate:disabled { opacity: 0.6; }
 
     .hidden { display: none !important; }
 </style>
-<!-- هاله‌های نوری پس‌زمینه (کاملاً آفلاین و سبک) -->
-<div class="ambient-glow" style="top: -60px; right: -40px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(10,132,255,0.4), transparent 70%);"></div>
-<div class="ambient-glow" style="top: 40%; left: -60px; width: 340px; height: 340px; background: radial-gradient(circle, rgba(255,55,95,0.25), transparent 70%);"></div>
-<div class="ambient-glow" style="bottom: -50px; right: 20%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(94,92,230,0.35), transparent 70%);"></div>
 
-<!-- =====================================================================
-     ۱. سربرگ شیشه‌ای لوکس و سازگار با ناچ گوشی (Safe Area Header)
-     ===================================================================== -->
+
+<!-- سربرگ با حاشیه امن بالای گوشی -->
 <header class="liquid-header safe-top-header">
     <div class="container flex-between" style="padding-bottom: 12px;">
-        
         <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(10,132,255,0.35);">
+            <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, var(--blue), var(--purple)); display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 18px; color: #fff;">💬</span>
             </div>
             <div>
                 <h1 style="font-size: 15px; font-weight: 800; line-height: 1.2;">فرا اسلنگ</h1>
-                <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">مترجم هوشمند اصطلاحات و کلام زنده</span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">مترجم هوشمند اصطلاحات و زبان عامیانه</span>
             </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px;">
-            <!-- دکمه نشان‌شده‌ها -->
-            <button id="openSavedDrawerBtn" class="glass-pill" style="width: 36px; height: 36px; position: relative;" title="نشان‌شده‌ها">
+            <button id="openSavedDrawerBtn" class="glass-pill" style="width: 36px; height: 36px; position: relative;">
                 <span style="font-size: 14px;">⭐️</span>
                 <span id="savedCountBadge" style="position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center;">۰</span>
             </button>
 
-            <!-- دکمه کلید اختصاصی -->
             <button id="openApiKeyModalBtn" class="glass-pill" style="padding: 6px 12px; gap: 6px;">
                 <span style="font-size: 12px;">🔑</span>
                 <span style="font-size: 11px;">کلید شخصی</span>
                 <span id="apiKeyDot" style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8;"></span>
             </button>
 
-            <!-- تغییر تم -->
-            <button id="themeToggleBtn" class="glass-pill" style="width: 36px; height: 36px;" title="تغییر تم">
+            <button id="themeToggleBtn" class="glass-pill" style="width: 36px; height: 36px;">
                 <span id="themeIcon" style="font-size: 14px;">🌙</span>
             </button>
         </div>
     </div>
 </header>
 
-<!-- =====================================================================
-     ۲. محتوای اصلی برنامه
-     ===================================================================== -->
+<!-- محتوای اصلی -->
 <main class="container" style="flex: 1; margin-top: 14px; display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 10;">
 
-    <!-- کارت ۱: ورودی متنی، تنظیم لحن و ترجمه -->
+    <!-- کارت تایپ متن و لحن -->
     <section class="liquid-glass" style="padding: 18px; display: flex; flex-direction: column; gap: 12px;">
         <div class="flex-between" style="border-bottom: 1px solid var(--glass-inner-border); padding-bottom: 8px;">
             <div style="display: flex; gap: 4px; background: var(--glass-inner-bg); padding: 4px; border-radius: 12px;">
@@ -274,10 +227,8 @@
             <button id="clearInputBtn" class="hidden" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer;">پاک کردن ✕</button>
         </div>
 
-        <!-- کادر ورودی متن -->
         <textarea id="phraseInput" rows="3" class="slang-textarea" placeholder="اصطلاح، تکیه‌کلام یا عبارت عامیانه را بنویسید (مثلاً: سلام، دمت گرم، چشمم آب نمی‌خوره)..."></textarea>
 
-        <!-- انتخاب لحن -->
         <div style="display: flex; align-items: center; gap: 6px; overflow-x: auto; padding-top: 2px;">
             <span style="font-size: 11px; color: var(--text-muted); shrink-0;">لحن:</span>
             <button data-tone="casual" class="tone-btn active">عامیانه روزمره</button>
@@ -286,37 +237,31 @@
             <button data-tone="polite" class="tone-btn">محترمانه صمیمی</button>
         </div>
 
-        <!-- دکمه شروع ترجمه -->
         <button id="translateBtn" class="btn-translate">
             <span id="translateBtnText">ترجمه اصطلاح و مفهوم</span>
         </button>
     </section>
 
-    <!-- کارت ۲: بخش اختصاصی مکالمه صوتی زنده (Voice Mode) -->
-    <section class="liquid-glass" style="padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; border: 1px solid rgba(191,90,242,0.25);">
+    <!-- بخش اختصاصی صوت -->
+    <section class="liquid-glass" style="padding: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; border: 1px solid rgba(191,90,242,0.25);">
         <div class="flex-between" style="width: 100%; border-bottom: 1px solid var(--glass-inner-border); padding-bottom: 8px;">
-            <span style="font-size: 12px; font-weight: 700; color: var(--purple); display: flex; align-items: center; gap: 6px;">
-                🎙️ حالت مکالمه صوتی زنده
-            </span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--purple);">🎙️ حالت مکالمه صوتی زنده</span>
             <span id="voiceLangTag" style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: rgba(191,90,242,0.15); color: var(--purple);">زبان: فارسی</span>
         </div>
 
-        <p id="liveTranscript" style="font-size: 13px; color: var(--text-muted); font-style: italic; min-height: 24px;">
-            دکمه میکروفون را لمس کنید و اصطلاح را بگویید...
-        </p>
+        <p id="liveTranscript" style="font-size: 13px; color: var(--text-muted); min-height: 22px;">دکمه میکروفون را لمس کنید و صحبت کنید...</p>
 
-        <!-- دکمه بزرگ ضبط صدا -->
         <div style="position: relative; padding: 4px;">
-            <button id="voiceRecordBtn" style="width: 66px; height: 66px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--blue), var(--indigo), var(--pink)); color: #fff; font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(255,55,95,0.35); transition: transform 0.15s ease;">
+            <button id="voiceRecordBtn" style="width: 64px; height: 64px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--blue), var(--indigo), var(--pink)); color: #fff; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 🎤
             </button>
         </div>
 
-        <span id="voiceHint" style="font-size: 11px; color: var(--text-muted); font-weight: 500;">لمس برای شروع / لمس دوباره برای ترجمه</span>
+        <span id="voiceHint" style="font-size: 11px; color: var(--text-muted);">لمس برای شروع / لمس مجدد برای ترجمه</span>
     </section>
 
-    <!-- کارت تست‌های سریع -->
-    <div style="display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 2px 4px;">
+    <!-- تست سریع -->
+    <div style="display: flex; align-items: center; gap: 6px; overflow-x: auto;">
         <span style="font-size: 11px; color: var(--text-muted); shrink-0;">تست سریع:</span>
         <button class="quick-chip glass-pill" style="padding: 5px 12px;">سلام</button>
         <button class="quick-chip glass-pill" style="padding: 5px 12px;">خوبی؟</button>
@@ -324,11 +269,8 @@
         <button class="quick-chip glass-pill" style="padding: 5px 12px;">دمت گرم</button>
     </div>
 
-    <!-- =====================================================================
-         ۳. کارت نتایج ترجمه
-         ===================================================================== -->
+    <!-- نتایج ترجمه -->
     <section id="resultCard" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
-        
         <div class="liquid-glass" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
             <div class="flex-between">
                 <div style="display: flex; align-items: center; gap: 6px;">
@@ -337,32 +279,31 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <button id="bookmarkBtn" class="glass-pill" style="width: 32px; height: 32px;" title="نشان کردن">⭐️</button>
-                    <button id="playAudioBtn" class="glass-pill" style="width: 32px; height: 32px;" title="پخش تلفظ">🔊</button>
-                    <button id="copyResultBtn" class="glass-pill" style="width: 32px; height: 32px;" title="کپی">📋</button>
+                    <button id="bookmarkBtn" class="glass-pill" style="width: 32px; height: 32px;">⭐️</button>
+                    <button id="playAudioBtn" class="glass-pill" style="width: 32px; height: 32px;">🔊</button>
+                    <button id="copyResultBtn" class="glass-pill" style="width: 32px; height: 32px;">📋</button>
                 </div>
             </div>
 
             <div>
-                <h2 id="resPrimary" style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;"></h2>
+                <h2 id="resPrimary" style="font-size: 22px; font-weight: 800;"></h2>
                 <p id="resLiteral" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;"></p>
             </div>
 
             <div style="padding: 12px; border-radius: 16px; background: var(--glass-inner-bg); border: 1px solid var(--glass-inner-border);">
-                <span style="font-size: 11px; font-weight: 700; color: var(--blue); display: block; margin-bottom: 4px;">💡 مفهوم و موقعیت مناسب برای استفاده:</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--blue); display: block; margin-bottom: 4px;">💡 مفهوم و موقعیت استفاده:</span>
                 <p id="resCultural" style="font-size: 12px; line-height: 1.6;"></p>
             </div>
         </div>
 
-        <!-- ۴. ماژول هوشمند الحاق ایموجی بر اساس پرسش از کاربر -->
+        <!-- جعبه پیشنهاد ایموجی -->
         <div id="emojiAssistantCard" class="liquid-glass" style="padding: 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(10,132,255,0.3);">
             <div class="flex-between">
-                <span style="font-size: 12px; font-weight: 700;">✨ مایلید ایموجی‌های متناسب به ترجمه اضافه شوند؟</span>
+                <span style="font-size: 12px; font-weight: 700;">✨ مایلید ایموجی متناسب اضافه شود؟</span>
                 <button id="selectAllEmojisBtn" style="background: none; border: none; font-size: 11px; font-weight: 700; color: var(--blue); cursor: pointer;">انتخاب همه</button>
             </div>
 
-            <!-- لیست ایموجی‌های پیشنهادی -->
-            <div id="selectableEmojisList" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0;"></div>
+            <div id="selectableEmojisList" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
 
             <div style="display: flex; gap: 8px;">
                 <button id="applySelectedEmojisBtn" style="flex: 1; padding: 10px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--blue), var(--indigo)); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer;">
@@ -372,57 +313,51 @@
             </div>
         </div>
 
-        <!-- سایر روش‌های بیان -->
+        <!-- سایر روش‌ها -->
         <div class="liquid-glass" style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
-            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">روش‌های دیگر گفتن (Alternatives):</span>
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">روش‌های دیگر بیان:</span>
             <div id="resAlternatives" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
         </div>
 
-        <!-- دیالوگ مکالمه دوطرفه به سبک پیام‌رسان -->
+        <!-- مکالمه دوطرفه -->
         <div class="liquid-glass" style="padding: 18px; display: flex; flex-direction: column; gap: 12px;">
             <div class="flex-between" style="border-bottom: 1px solid var(--glass-inner-border); padding-bottom: 8px;">
                 <span style="font-size: 12px; font-weight: 700;">💬 کاربرد در مکالمه واقعی</span>
-                <span id="dialogueToneBadge" style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: rgba(94,92,230,0.15); color: var(--indigo);">مکالمه زنده</span>
             </div>
 
-            <!-- گوینده اول -->
             <div class="chat-bubble-a">
                 <div class="flex-between" style="margin-bottom: 4px;">
                     <span style="font-size: 10px; color: var(--text-muted);">طرف مقابل:</span>
                     <button id="playDialogueABtn" style="background: none; border: none; font-size: 11px; cursor: pointer;">🔊</button>
                 </div>
-                <p id="dialogueA_en" style="font-size: 13px; font-weight: 700; line-height: 1.4;"></p>
-                <p id="dialogueA_fa" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"></p>
+                <p id="dialogueA_en" style="font-size: 13px; font-weight: 700;"></p>
+                <p id="dialogueA_fa" style="font-size: 11px; color: var(--text-muted);"></p>
             </div>
 
-            <!-- گوینده دوم (پاسخ شما) -->
             <div class="chat-bubble-b">
                 <div class="flex-between" style="margin-bottom: 4px;">
                     <span style="font-size: 10px; color: var(--blue); font-weight: 700;">پاسخ شما:</span>
                     <button id="playDialogueBBtn" style="background: none; border: none; font-size: 11px; cursor: pointer;">🔊</button>
                 </div>
-                <p id="dialogueB_en" style="font-size: 13px; font-weight: 700; line-height: 1.4;"></p>
-                <p id="dialogueB_fa" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"></p>
+                <p id="dialogueB_en" style="font-size: 13px; font-weight: 700;"></p>
+                <p id="dialogueB_fa" style="font-size: 11px; color: var(--text-muted);"></p>
             </div>
         </div>
     </section>
 
-    <!-- اعلان پیام شناور (Toast) -->
-    <div id="toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(15,23,42,0.92); color: #fff; padding: 10px 20px; border-radius: 9999px; font-size: 12px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.3); opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100;">
+    <!-- اعلان -->
+    <div id="toast" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(15,23,42,0.95); color: #fff; padding: 10px 20px; border-radius: 9999px; font-size: 12px; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 100;">
         اعلان
     </div>
-
 </main>
 
-<!-- =====================================================================
-     ۵. کشوی نشان‌شده‌ها (Saved Items Drawer)
-     ===================================================================== -->
-<div id="savedModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: flex-end; justify-content: center; z-index: 60;">
-    <div class="liquid-glass" style="width: 100%; max-width: 540px; max-height: 75vh; border-radius: 28px 28px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: var(--bg-base);">
+<!-- کشوی نشان‌شده‌ها -->
+<div id="savedModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; justify-content: center; z-index: 60;">
+    <div class="liquid-glass" style="width: 100%; max-width: 540px; max-height: 75vh; border-radius: 26px 26px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: var(--bg-base);">
         <div class="flex-between" style="border-bottom: 1px solid var(--glass-inner-border); padding-bottom: 10px;">
             <span style="font-size: 14px; font-weight: 700;">⭐️ اصطلاحات نشان‌شده</span>
             <div style="display: flex; gap: 10px;">
-                <button id="clearAllSavedBtn" style="background: none; border: none; color: #ef4444; font-size: 11px; cursor: pointer; font-weight: 600;">پاک‌کردن همه</button>
+                <button id="clearAllSavedBtn" style="background: none; border: none; color: #ef4444; font-size: 11px; cursor: pointer;">پاک‌کردن همه</button>
                 <button id="closeSavedBtn" style="background: none; border: none; font-size: 16px; color: var(--text-muted); cursor: pointer;">✕</button>
             </div>
         </div>
@@ -430,17 +365,15 @@
     </div>
 </div>
 
-<!-- =====================================================================
-     ۶. پنجره کلید اختصاصی گوگل
-     ===================================================================== -->
-<div id="apiKeyModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px;">
+<!-- پنجره کلید اختصاصی -->
+<div id="apiKeyModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px;">
     <div class="liquid-glass" style="width: 100%; max-width: 480px; padding: 22px; display: flex; flex-direction: column; gap: 14px; background: var(--bg-base);">
         <div class="flex-between" style="border-bottom: 1px solid var(--glass-inner-border); padding-bottom: 8px;">
             <span style="font-size: 14px; font-weight: 700;">🔑 تنظیم کلید شخصی Gemini</span>
             <button id="closeApiKeyBtn" style="background: none; border: none; font-size: 16px; color: var(--text-muted); cursor: pointer;">✕</button>
         </div>
         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.6;">
-            برنامه به صورت پیش‌فرض و رایگان به ورکر کلادفلر بدون تحریم متصل است. در صورت تمایل می‌توانید کلید اختصاصی گوگل خود را برای مصرف شخصی وارد کنید:
+            اپلیکیشن به صورت رایگان به ورکر کلادفلر متصل است. در صورت تمایل می‌توانید کلید اختصاصی خود را وارد نمایید:
         </p>
         <input type="password" id="personalKeyInput" placeholder="AIzaSy..." style="width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--glass-inner-border); background: var(--glass-inner-bg); color: var(--text-main); font-size: 13px; outline: none;">
         <div style="display: flex; gap: 8px;">
@@ -450,618 +383,593 @@
     </div>
 </div>
 
-<!-- =====================================================================
-     ۷. کدهای جاوااسکریپت با حفاظت کامل در برابر خطا (Zero-Crash)
-     ===================================================================== -->
+<!-- اسکریپت امن و محافظت‌شده سازگار با تمامی وب‌ویوها -->
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const CLOUDFLARE_WORKER_URL = "https://feraslang-api.fera-appe.workers.dev/";
-
-        let currentDirection = 'fa-en';
-        let currentTone = 'casual';
-        let isVoiceRecording = false;
-        let speechRecognizer = null;
-        let currentResultData = null;
-        let rawPrimaryTranslation = "";
-        let selectedEmojis = new Set();
-        let currentSuggestedEmojis = [];
-
-        // المان‌ها
-        const phraseInput = document.getElementById('phraseInput');
-        const clearInputBtn = document.getElementById('clearInputBtn');
-        const translateBtn = document.getElementById('translateBtn');
-        const translateBtnText = document.getElementById('translateBtnText');
-        const dirFaToEn = document.getElementById('dirFaToEn');
-        const dirEnToFa = document.getElementById('dirEnToFa');
-
-        const voiceRecordBtn = document.getElementById('voiceRecordBtn');
-        const liveTranscript = document.getElementById('liveTranscript');
-        const voiceHint = document.getElementById('voiceHint');
-        const voiceLangTag = document.getElementById('voiceLangTag');
-
-        const resultCard = document.getElementById('resultCard');
-        const resPrimary = document.getElementById('resPrimary');
-        const resLiteral = document.getElementById('resLiteral');
-        const resCultural = document.getElementById('resCultural');
-        const resToneBadge = document.getElementById('resToneBadge');
-        const resSourceBadge = document.getElementById('resSourceBadge');
-        const resAlternatives = document.getElementById('resAlternatives');
-        const dialogueA_en = document.getElementById('dialogueA_en');
-        const dialogueA_fa = document.getElementById('dialogueA_fa');
-        const dialogueB_en = document.getElementById('dialogueB_en');
-        const dialogueB_fa = document.getElementById('dialogueB_fa');
-        const bookmarkBtn = document.getElementById('bookmarkBtn');
-
-        const selectableEmojisList = document.getElementById('selectableEmojisList');
-        const selectAllEmojisBtn = document.getElementById('selectAllEmojisBtn');
-        const applySelectedEmojisBtn = document.getElementById('applySelectedEmojisBtn');
-        const resetEmojisBtn = document.getElementById('resetEmojisBtn');
-
-        // تم تاریک / روشن
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const themeIcon = document.getElementById('themeIcon');
-        const savedTheme = localStorage.getItem('feraslang_theme') || 'dark';
-        if (savedTheme === 'light') {
-            document.documentElement.classList.remove('dark');
-            themeIcon.innerText = '☀️';
-        } else {
-            document.documentElement.classList.add('dark');
-            themeIcon.innerText = '🌙';
+    (function() {
+        // توابع ذخیره‌سازی امن
+        function safeStorageGet(key, defVal) {
+            try {
+                return localStorage.getItem(key) || defVal;
+            } catch (e) {
+                return defVal;
+            }
         }
 
-        themeToggleBtn.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('feraslang_theme', isDark ? 'dark' : 'light');
-            themeIcon.innerText = isDark ? '🌙' : '☀️';
-            showToast(isDark ? 'تم تاریک فعال شد 🌙' : 'تم روشن فعال شد ☀️');
-        });
+        function safeStorageSet(key, val) {
+            try {
+                localStorage.setItem(key, val);
+            } catch (e) {}
+        }
 
-        // جهت زبان
-        dirFaToEn.addEventListener('click', () => {
-            currentDirection = 'fa-en';
-            dirFaToEn.style.background = 'var(--blue)';
-            dirFaToEn.style.color = '#fff';
-            dirEnToFa.style.background = 'transparent';
-            dirEnToFa.style.color = 'var(--text-muted)';
-            phraseInput.placeholder = "اصطلاح، تکیه‌کلام یا عبارت عامیانه را بنویسید (مثلاً: سلام، دمت گرم)...";
-            voiceLangTag.innerText = "زبان: فارسی";
-        });
+        function startApp() {
+            var CLOUDFLARE_WORKER_URL = "https://feraslang-api.fera-appe.workers.dev/";
 
-        dirEnToFa.addEventListener('click', () => {
-            currentDirection = 'en-fa';
-            dirEnToFa.style.background = 'var(--blue)';
-            dirEnToFa.style.color = '#fff';
-            dirFaToEn.style.background = 'transparent';
-            dirFaToEn.style.color = 'var(--text-muted)';
-            phraseInput.placeholder = "Type English idiom or slang (e.g. Spill the beans)...";
-            voiceLangTag.innerText = "Language: English";
-        });
+            var currentDirection = 'fa-en';
+            var currentTone = 'casual';
+            var isVoiceRecording = false;
+            var speechRecognizer = null;
+            var currentResultData = null;
+            var rawPrimaryTranslation = "";
+            var selectedEmojis = [];
+            var currentSuggestedEmojis = [];
 
-        // انتخاب لحن
-        document.querySelectorAll('.tone-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentTone = btn.dataset.tone;
-            });
-        });
+            var phraseInput = document.getElementById('phraseInput');
+            var clearInputBtn = document.getElementById('clearInputBtn');
+            var translateBtn = document.getElementById('translateBtn');
+            var translateBtnText = document.getElementById('translateBtnText');
+            var dirFaToEn = document.getElementById('dirFaToEn');
+            var dirEnToFa = document.getElementById('dirEnToFa');
 
-        // ورودی متن
-        phraseInput.addEventListener('input', () => {
-            clearInputBtn.classList.toggle('hidden', phraseInput.value.trim().length === 0);
-        });
-        clearInputBtn.addEventListener('click', () => {
-            phraseInput.value = '';
-            clearInputBtn.classList.add('hidden');
-            phraseInput.focus();
-        });
+            var voiceRecordBtn = document.getElementById('voiceRecordBtn');
+            var liveTranscript = document.getElementById('liveTranscript');
+            var voiceHint = document.getElementById('voiceHint');
+            var voiceLangTag = document.getElementById('voiceLangTag');
 
-        // تست‌های سریع
-        document.querySelectorAll('.quick-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                phraseInput.value = chip.innerText;
-                clearInputBtn.classList.remove('hidden');
-                startTranslation(chip.innerText);
-            });
-        });
+            var resultCard = document.getElementById('resultCard');
+            var resPrimary = document.getElementById('resPrimary');
+            var resLiteral = document.getElementById('resLiteral');
+            var resCultural = document.getElementById('resCultural');
+            var resToneBadge = document.getElementById('resToneBadge');
+            var resSourceBadge = document.getElementById('resSourceBadge');
+            var resAlternatives = document.getElementById('resAlternatives');
+            var dialogueA_en = document.getElementById('dialogueA_en');
+            var dialogueA_fa = document.getElementById('dialogueA_fa');
+            var dialogueB_en = document.getElementById('dialogueB_en');
+            var dialogueB_fa = document.getElementById('dialogueB_fa');
+            var bookmarkBtn = document.getElementById('bookmarkBtn');
 
-        // ماژول صوتی زنده
-        voiceRecordBtn.addEventListener('click', () => {
-            if (isVoiceRecording) {
-                stopRecording();
+            var selectableEmojisList = document.getElementById('selectableEmojisList');
+            var selectAllEmojisBtn = document.getElementById('selectAllEmojisBtn');
+            var applySelectedEmojisBtn = document.getElementById('applySelectedEmojisBtn');
+            var resetEmojisBtn = document.getElementById('resetEmojisBtn');
+
+            var themeToggleBtn = document.getElementById('themeToggleBtn');
+            var themeIcon = document.getElementById('themeIcon');
+            
+            // تم اولیه
+            var savedTheme = safeStorageGet('feraslang_theme', 'dark');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('dark');
+                themeIcon.innerText = '☀️';
             } else {
-                startRecording();
+                document.documentElement.classList.add('dark');
+                document.body.classList.add('dark');
+                themeIcon.innerText = '🌙';
             }
-        });
 
-        function startRecording() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                showToast('سرویس گفتار در مرورگر پشتیبانی نمی‌شود 🎙️');
-                return;
-            }
-            try {
-                speechRecognizer = new SpeechRecognition();
-                speechRecognizer.lang = currentDirection === 'fa-en' ? 'fa-IR' : 'en-US';
-                speechRecognizer.interimResults = true;
-                speechRecognizer.continuous = false;
+            themeToggleBtn.addEventListener('click', function() {
+                var isDark = document.documentElement.classList.toggle('dark');
+                document.body.classList.toggle('dark');
+                safeStorageSet('feraslang_theme', isDark ? 'dark' : 'light');
+                themeIcon.innerText = isDark ? '🌙' : '☀️';
+                showToast(isDark ? 'تم تاریک فعال شد 🌙' : 'تم روشن فعال شد ☀️');
+            });
 
-                speechRecognizer.onstart = () => {
-                    isVoiceRecording = true;
-                    voiceRecordBtn.classList.add('voice-active');
-                    voiceHint.innerText = 'در حال شنیدن... (پس از مکث، خودکار ترجمه می‌شود)';
-                    liveTranscript.innerText = 'گوش می‌دهم...';
-                };
+            // تغییر جهت زبان
+            dirFaToEn.addEventListener('click', function() {
+                currentDirection = 'fa-en';
+                dirFaToEn.style.background = 'var(--blue)';
+                dirFaToEn.style.color = '#fff';
+                dirEnToFa.style.background = 'transparent';
+                dirEnToFa.style.color = 'var(--text-muted)';
+                phraseInput.placeholder = "اصطلاح، تکیه‌کلام یا عبارت عامیانه را بنویسید (مثلاً: سلام، دمت گرم)...";
+                voiceLangTag.innerText = "زبان: فارسی";
+            });
 
-                speechRecognizer.onresult = (e) => {
-                    const spoken = Array.from(e.results).map(r => r[0].transcript).join('');
-                    liveTranscript.innerText = `« ${spoken} »`;
-                    phraseInput.value = spoken;
-                    clearInputBtn.classList.remove('hidden');
-                    if (e.results[0].isFinal) {
-                        stopRecording();
-                        startTranslation(spoken);
-                    }
-                };
+            dirEnToFa.addEventListener('click', function() {
+                currentDirection = 'en-fa';
+                dirEnToFa.style.background = 'var(--blue)';
+                dirEnToFa.style.color = '#fff';
+                dirFaToEn.style.background = 'transparent';
+                dirFaToEn.style.color = 'var(--text-muted)';
+                phraseInput.placeholder = "Type English idiom or slang (e.g. Spill the beans)...";
+                voiceLangTag.innerText = "Language: English";
+            });
 
-                speechRecognizer.onerror = () => {
-                    stopRecording();
-                    liveTranscript.innerText = 'صدایی دریافت نشد؛ دوباره امتحان کنید.';
-                };
-                speechRecognizer.onend = stopRecording;
-                speechRecognizer.start();
-            } catch (e) {
-                stopRecording();
-                showToast('دسترسی به میکروفون میسر نشد');
-            }
-        }
+            // انتخاب لحن
+            var toneBtns = document.querySelectorAll('.tone-btn');
+            toneBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    toneBtns.forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    currentTone = btn.getAttribute('data-tone') || 'casual';
+                });
+            });
 
-        function stopRecording() {
-            isVoiceRecording = false;
-            voiceRecordBtn.classList.remove('voice-active');
-            voiceHint.innerText = 'لمس برای شروع / لمس دوباره برای ترجمه';
-            if (speechRecognizer) {
-                try { speechRecognizer.stop(); } catch(e){}
-            }
-        }
-
-        // فراخوانی ترجمه
-        translateBtn.addEventListener('click', () => {
-            const text = phraseInput.value.trim();
-            if (!text) {
-                showToast('ابتدا عبارتی بنویسید یا بگویید ✍️');
+            phraseInput.addEventListener('input', function() {
+                clearInputBtn.classList.toggle('hidden', phraseInput.value.trim().length === 0);
+            });
+            clearInputBtn.addEventListener('click', function() {
+                phraseInput.value = '';
+                clearInputBtn.classList.add('hidden');
                 phraseInput.focus();
-                return;
+            });
+
+            document.querySelectorAll('.quick-chip').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    phraseInput.value = chip.innerText;
+                    clearInputBtn.classList.remove('hidden');
+                    startTranslation(chip.innerText);
+                });
+            });
+
+            // سرویس گفتار
+            voiceRecordBtn.addEventListener('click', function() {
+                if (isVoiceRecording) {
+                    stopRecording();
+                } else {
+                    startRecording();
+                }
+            });
+
+            function startRecording() {
+                var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    showToast('سرویس گفتار در این دستگاه پشتیبانی نمی‌شود 🎙️');
+                    return;
+                }
+                try {
+                    speechRecognizer = new SpeechRecognition();
+                    speechRecognizer.lang = currentDirection === 'fa-en' ? 'fa-IR' : 'en-US';
+                    speechRecognizer.interimResults = true;
+                    speechRecognizer.continuous = false;
+
+                    speechRecognizer.onstart = function() {
+                        isVoiceRecording = true;
+                        voiceRecordBtn.classList.add('voice-active');
+                        voiceHint.innerText = 'در حال شنیدن...';
+                        liveTranscript.innerText = 'گوش می‌دهم...';
+                    };
+
+                    speechRecognizer.onresult = function(e) {
+                        var spoken = Array.from(e.results).map(function(r) { return r[0].transcript; }).join('');
+                        liveTranscript.innerText = '« ' + spoken + ' »';
+                        phraseInput.value = spoken;
+                        clearInputBtn.classList.remove('hidden');
+                        if (e.results[0] && e.results[0].isFinal) {
+                            stopRecording();
+                            startTranslation(spoken);
+                        }
+                    };
+
+                    speechRecognizer.onerror = function() {
+                        stopRecording();
+                        liveTranscript.innerText = 'صدایی شنیده نشد؛ دوباره امتحان کنید.';
+                    };
+                    speechRecognizer.onend = stopRecording;
+                    speechRecognizer.start();
+                } catch (e) {
+                    stopRecording();
+                    showToast('دسترسی میکروفون داده نشد');
+                }
             }
-            startTranslation(text);
-        });
 
-        async function startTranslation(text) {
-            translateBtn.disabled = true;
-            translateBtnText.innerText = 'در حال ترجمه...';
-
-            try {
-                const data = await querySlangAI(text, currentTone, currentDirection);
-                currentResultData = { ...data, originalPhrase: text, direction: currentDirection };
-                renderResult(data);
-                resultCard.classList.remove('hidden');
-                resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } catch (e) {
-                showToast('خطا در ترجمه');
-            } finally {
-                translateBtn.disabled = false;
-                translateBtnText.innerText = 'ترجمه اصطلاح و مفهوم';
+            function stopRecording() {
+                isVoiceRecording = false;
+                voiceRecordBtn.classList.remove('voice-active');
+                voiceHint.innerText = 'لمس برای شروع / لمس دوباره برای ترجمه';
+                if (speechRecognizer) {
+                    try { speechRecognizer.stop(); } catch(e){}
+                }
             }
-        }
 
-        async function querySlangAI(phrase, tone, direction) {
-            const personalKey = localStorage.getItem('feraslang_personal_gemini_key') || '';
+            translateBtn.addEventListener('click', function() {
+                var text = phraseInput.value.trim();
+                if (!text) {
+                    showToast('ابتدا عبارتی بنویسید یا بگویید ✍️');
+                    phraseInput.focus();
+                    return;
+                }
+                startTranslation(text);
+            });
 
-            const toneGuide = {
-                casual: "Natural everyday friendly slang (عامیانه روزمره)",
-                street: "Urban street slang (خیابانی، لاتی، تکیه‌کلام جوانان)",
-                sarcastic: "Sarcastic, witty, ironic (طعنه‌آمیز، تیکه‌دار)",
-                polite: "Warm, respectful colloquial (محترمانه صمیمی)"
-            }[tone] || "casual";
+            function startTranslation(text) {
+                translateBtn.disabled = true;
+                translateBtnText.innerText = 'در حال ترجمه...';
 
-            const systemPrompt = `You are an expert bilingual Persian-English slang translator.
-CRITICAL: Adapt strictly to tone: "${toneGuide}".For "سلام" in street: "Yo what's good fam! / Sup bro!"For "سلام" in sarcastic: "Look who finally showed up!"For "سلام" in casual: "Hey there! / What's up!"Return ONLY RFC-8259 JSON:
-{
-"primaryTranslation": "translated slang",
-"toneLabel": "نام لحن به فارسی",
-"literalMeaning": "معنی یا مقصود اصلی عبارت به فارسی",
-"culturalExplanation": "توضیح کوتاه موقعیت مناسب استفاده به فارسی",
-"alternatives": ["معادل دوم", "معادل سوم"],
-"suggestedEmojis": ["🔥", "🤙", "🕶️"],
-"dialogue": {
-"speakerA_en": "Line A in English",
-"speakerA_fa": "ترجمه خط A",
-"speakerB_en": "Line B with the translated phrase",
-"speakerB_fa": "ترجمه خط B"
-}
-}; const userPrompt = Input: "${phrase}". Tone: "${toneGuide}". Direction: ${direction}.`;            // لایه ۱: ورکر کلادفلر
-            try {
-                const payload = {
-                    contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }]
+                querySlangAI(text, currentTone, currentDirection)
+                    .then(function(data) {
+                        currentResultData = data;
+                        currentResultData.originalPhrase = text;
+                        renderResult(data);
+                        resultCard.classList.remove('hidden');
+                        resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    })
+                    .catch(function() {
+                        showToast('خطا در ترجمه');
+                    })
+                    .finally(function() {
+                        translateBtn.disabled = false;
+                        translateBtnText.innerText = 'ترجمه اصطلاح و مفهوم';
+                    });
+            }
+
+            function querySlangAI(phrase, tone, direction) {
+                var personalKey = safeStorageGet('feraslang_personal_gemini_key', '');
+
+                var toneGuide = "casual";
+                if (tone === "street") toneGuide = "Urban street slang (خیابانی، لاتی)";
+                else if (tone === "sarcastic") toneGuide = "Sarcastic, witty (طعنه‌آمیز)";
+                else if (tone === "polite") toneGuide = "Polite colloquial (محترمانه صمیمی)";
+
+                var systemPrompt = "Bilingual slang translator. Tone: " + toneGuide + ". Output RFC-8259 JSON ONLY: {\"primaryTranslation\":\"...\",\"toneLabel\":\"...\",\"literalMeaning\":\"...\",\"culturalExplanation\":\"...\",\"alternatives\":[\"...\"],\"suggestedEmojis\":[\"🔥\"],\"dialogue\":{\"speakerA_en\":\"...\",\"speakerA_fa\":\"...\",\"speakerB_en\":\"...\",\"speakerB_fa\":\"...\"}}";
+                var userPrompt = "Input: " + phrase + ". Direction: " + direction;
+
+                var payload = {
+                    contents: [{ role: "user", parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }]
                 };
-                const headers = { 'Content-Type': 'application/json' };
+                var headers = { 'Content-Type': 'application/json' };
                 if (personalKey) headers['x-api-key'] = personalKey;
 
-                const res = await fetch(CLOUDFLARE_WORKER_URL, {
+                return fetch(CLOUDFLARE_WORKER_URL, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    const json = await res.json();
-                    const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (rawText) {
-                        const parsed = parseSafeJson(rawText);
-                        if (parsed && parsed.primaryTranslation) {
-                            parsed.isOnline = true;
-                            return parsed;
-                        }
+                })
+                .then(function(res) {
+                    if (res.ok) return res.json();
+                    throw new Error("Worker responded with error");
+                })
+                .then(function(json) {
+                    var rawText = "";
+                    if (json && json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts) {
+                        rawText = json.candidates[0].content.parts[0].text;
                     }
-                }
-            } catch (e) {
-                console.warn('Worker skipped:', e);
-            }
-
-            // لایه ۲: پشتیبان عمومی
-            try {
-                const backupRes = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: userPrompt }
-                        ],
-                        jsonMode: true
-                    })
-                });
-                if (backupRes.ok) {
-                    const txt = await backupRes.text();
-                    const parsed = parseSafeJson(txt);
+                    var parsed = parseSafeJson(rawText);
                     if (parsed && parsed.primaryTranslation) {
                         parsed.isOnline = true;
                         return parsed;
                     }
-                }
-            } catch (errBackup) {
-                console.warn('Backup skipped:', errBackup);
-            }
-
-            // لایه ۳: پایگاه محلی آفلاین
-            showToast('استفاده از پایگاه محلی (آفلاین) ⚠️');
-            const local = getSmartLocalSlang(phrase, tone, direction);
-            local.isOnline = false;
-            return local;
-        }
-
-        function parseSafeJson(text) {
-            if (!text) return null;
-            try {
-                let cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
-                const f = cleaned.indexOf('{');
-                const l = cleaned.lastIndexOf('}');
-                if (f !== -1 && l !== -1) cleaned = cleaned.substring(f, l + 1);
-                return JSON.parse(cleaned);
-            } catch (e) { return null; }
-        }
-
-        function getSmartLocalSlang(phrase, tone, direction) {
-            const p = phrase.trim().toLowerCase();
-            if (p.includes("سلام") || p.includes("hello") || p.includes("hi")) {
-                if (tone === "street") {
-                    return {
-                        primaryTranslation: "Yo, what's good fam! / Sup bro!",
-                        toneLabel: "خیابانی",
-                        literalMeaning: "سلام خودمانی و گرم خیابانی",
-                        culturalExplanation: "در جمع دوستان نزدیک و صمیمی به کار می‌رود.",
-                        alternatives: ["What's crackin'?", "Sup dude!"],
-                        suggestedEmojis: ["🤙", "👊", "🕶️"],
-                        dialogue: {
-                            speakerA_en: "Yo, anyone home?",
-                            speakerA_fa: "هی، کسی هست؟",
-                            speakerB_en: "Yo, what's good fam! Come on in.",
-                            speakerB_fa: "به به چه خبر دادا! بیا تو."
-                        }
-                    };
-                } else if (tone === "sarcastic") {
-                    return {
-                        primaryTranslation: "Look who finally decided to show up!",
-                        toneLabel: "طعنه‌آمیز",
-                        literalMeaning: "به به بالاخره پیدات شد!",
-                        culturalExplanation: "وقتی کسی بعد از مدت‌ها تاخیر وارد می‌شود.",
-                        alternatives: ["Oh, you're alive?", "Well, look who it is!"],
-                        suggestedEmojis: ["🙄", "😒", "⏰"],
-                        dialogue: {
-                            speakerA_en: "Hey, sorry I'm late.",
-                            speakerA_fa: "سلام، شرمنده دیر شد.",
-                            speakerB_en: "Look who finally decided to show up!",
-                            speakerB_fa: "به به، بالاخره افتخار دادی!"
-                        }
-                    };
-                } else {
-                    return {
-                        primaryTranslation: "Hey there! / What's up!",
-                        toneLabel: "عامیانه روزمره",
-                        literalMeaning: "سلام دوستانه روزمره",
-                        culturalExplanation: "مرسوم‌ترین شکل سلام بین دوستان.",
-                        alternatives: ["Hey! How's it going?", "Hi there!"],
-                        suggestedEmojis: ["👋", "✨", "😊"],
-                        dialogue: {
-                            speakerA_en: "Hey, long time no see!",
-                            speakerA_fa: "سلام، خیلی وقته ندیدمت!",
-                            speakerB_en: "Hey there! What's up, how have you been?",
-                            speakerB_fa: "سلام! چه خبر، اوضاعت چطور بوده؟"
-                        }
-                    };
-                }
-            }
-            return {
-                primaryTranslation: direction === 'fa-en' ? `Hit me up about ${phrase}` : `در مورد «${phrase}» ردیفه`,
-                toneLabel: "عامیانه",
-                literalMeaning: `مفهوم کاربردی برای «${phrase}»`,
-                culturalExplanation: "کاربرد محاوره‌ای و روان در گفت‌وگوها.",
-                alternatives: ["Sounds good", "Right on"],
-                suggestedEmojis: ["👌", "🔥", "🤝"],
-                dialogue: {
-                    speakerA_en: `What do you think about ${phrase}?`,
-                    speakerA_fa: `نظرت درباره این چیه؟`,
-                    speakerB_en: `Sounds like a solid plan to me!`,
-                    speakerB_fa: `به نظرم خیلی عالی و ردیفه!`
-                }
-            };
-        }
-
-        function renderResult(data) {
-            rawPrimaryTranslation = data.primaryTranslation || '';
-            resPrimary.innerText = rawPrimaryTranslation;
-            resLiteral.innerText = data.literalMeaning || '';
-            resCultural.innerText = data.culturalExplanation || '';
-            resToneBadge.innerText = data.toneLabel || 'عامیانه';
-
-            resSourceBadge.innerText = data.isOnline ? "هوش مصنوعی زنده ✨" : "پایگاه محلی ⚠️";
-            resSourceBadge.style.color = data.isOnline ? "var(--emerald)" : "var(--amber)";
-
-            renderEmojiModule(data.suggestedEmojis);
-
-            resAlternatives.innerHTML = '';
-            (data.alternatives || []).forEach(alt => {
-                const chip = document.createElement('button');
-                chip.className = "glass-pill";
-                chip.style.padding = "4px 10px";
-                chip.style.fontSize = "11px";
-                chip.innerText = alt;
-                chip.onclick = () => copyText(alt, 'معادل کپی شد ✅');
-                resAlternatives.appendChild(chip);
-            });
-
-            if (data.dialogue) {
-                dialogueA_en.innerText = data.dialogue.speakerA_en || '';
-                dialogueA_fa.innerText = data.dialogue.speakerA_fa || '';
-                dialogueB_en.innerText = data.dialogue.speakerB_en || '';
-                dialogueB_fa.innerText = data.dialogue.speakerB_fa || '';
-            }
-            checkBookmarkStatus();
-        }
-
-        // ماژول انتخاب ایموجی
-        function renderEmojiModule(emojis) {
-            currentSuggestedEmojis = emojis && emojis.length ? emojis : ['🔥', '✨', '👀', '🤙'];
-            selectedEmojis.clear();
-            selectableEmojisList.innerHTML = '';
-
-            currentSuggestedEmojis.forEach(em => {
-                const btn = document.createElement('button');
-                btn.className = "glass-pill";
-                btn.style.padding = "6px 14px";
-                btn.style.fontSize = "18px";
-                btn.innerText = em;
-                btn.onclick = () => {
-                    if (selectedEmojis.has(em)) {
-                        selectedEmojis.delete(em);
-                        btn.style.borderColor = "var(--glass-inner-border)";
-                        btn.style.background = "var(--glass-inner-bg)";
-                    } else {
-                        selectedEmojis.add(em);
-                        btn.style.borderColor = "var(--blue)";
-                        btn.style.background = "rgba(10,132,255,0.2)";
-                    }
-                };
-                selectableEmojisList.appendChild(btn);
-            });
-        }
-
-        selectAllEmojisBtn.addEventListener('click', () => {
-            const pills = selectableEmojisList.querySelectorAll('button');
-            const allSelected = selectedEmojis.size === currentSuggestedEmojis.length;
-            selectedEmojis.clear();
-            pills.forEach((p, idx) => {
-                if (!allSelected) {
-                    selectedEmojis.add(currentSuggestedEmojis[idx]);
-                    p.style.borderColor = "var(--blue)";
-                    p.style.background = "rgba(10,132,255,0.2)";
-                } else {
-                    p.style.borderColor = "var(--glass-inner-border)";
-                    p.style.background = "var(--glass-inner-bg)";
-                }
-            });
-        });
-
-        applySelectedEmojisBtn.addEventListener('click', () => {
-            if (selectedEmojis.size === 0) {
-                showToast('حداقل یک ایموجی را انتخاب کنید 💡');
-                return;
-            }
-            resPrimary.innerText = `${rawPrimaryTranslation} ${Array.from(selectedEmojis).join(' ')}`;
-            if (currentResultData) currentResultData.primaryTranslation = resPrimary.innerText;
-            showToast('ایموجی‌ها پیوست شدند ✨');
-        });
-
-        resetEmojisBtn.addEventListener('click', () => {
-            resPrimary.innerText = rawPrimaryTranslation;
-            if (currentResultData) currentResultData.primaryTranslation = rawPrimaryTranslation;
-            selectableEmojisList.querySelectorAll('button').forEach(p => {
-                p.style.borderColor = "var(--glass-inner-border)";
-                p.style.background = "var(--glass-inner-bg)";
-            });
-            selectedEmojis.clear();
-            showToast('متن ساده بازگردانده شد');
-        });
-
-        // صوت TTS
-        function speak(txt, lang) {
-            if (!('speechSynthesis' in window)) {
-                showToast('پخش صوت در دسترس نیست');
-                return;
-            }
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(txt);
-            u.lang = lang;
-            u.rate = 0.9;
-            window.speechSynthesis.speak(u);
-        }
-
-        document.getElementById('playAudioBtn').addEventListener('click', () => {
-            speak(resPrimary.innerText, currentDirection === 'fa-en' ? 'en-US' : 'fa-IR');
-        });
-        document.getElementById('playDialogueABtn').addEventListener('click', () => speak(dialogueA_en.innerText, 'en-US'));
-        document.getElementById('playDialogueBBtn').addEventListener('click', () => speak(dialogueB_en.innerText, 'en-US'));
-
-        // کپی
-        document.getElementById('copyResultBtn').addEventListener('click', () => {
-            copyText(resPrimary.innerText, 'در کلیپ‌بورد کپی شد ✅');
-        });
-
-        function copyText(txt, msg) {
-            const t = document.createElement("textarea");
-            t.value = txt;
-            document.body.appendChild(t);
-            t.select();
-            document.execCommand("copy");
-            document.body.removeChild(t);
-            showToast(msg);
-        }
-
-        // نشان‌شده‌ها
-        function getSaved() {
-            try { return JSON.parse(localStorage.getItem('feraslang_saved')) || []; } catch(e){ return []; }
-        }
-        function updateSavedBadge() {
-            document.getElementById('savedCountBadge').innerText = getSaved().length;
-        }
-        updateSavedBadge();
-
-        function checkBookmarkStatus() {
-            if (!currentResultData) return;
-            const isBookmarked = getSaved().some(i => i.primaryTranslation === currentResultData.primaryTranslation);
-            bookmarkBtn.style.color = isBookmarked ? "var(--amber)" : "var(--text-muted)";
-        }
-
-        bookmarkBtn.addEventListener('click', () => {
-            if (!currentResultData) return;
-            let list = getSaved();
-            const idx = list.findIndex(i => i.primaryTranslation === currentResultData.primaryTranslation);
-            if (idx > -1) {
-                list.splice(idx, 1);
-                showToast('از نشان‌شده‌ها حذف شد');
-            } else {
-                list.unshift(currentResultData);
-                showToast('به نشان‌شده‌ها اضافه شد ⭐️');
-            }
-            localStorage.setItem('feraslang_saved', JSON.stringify(list));
-            updateSavedBadge();
-            checkBookmarkStatus();
-        });
-
-        // کشوی نشان‌شده‌ها
-        const savedModal = document.getElementById('savedModal');
-        document.getElementById('openSavedDrawerBtn').addEventListener('click', () => {
-            const list = getSaved();
-            const container = document.getElementById('savedItemsList');
-            container.innerHTML = '';
-            if (!list.length) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">هنوز موردی نشان نشده است ⭐️</div>';
-            } else {
-                list.forEach((item, i) => {
-                    const row = document.createElement('div');
-                    row.className = "liquid-glass";
-                    row.style.padding = "10px 14px";
-                    row.style.display = "flex";
-                    row.style.alignItems = "center";
-                    row.style.justifyContent = "space-between";
-                    row.innerHTML = `
-                        <div>
-                            <span style="font-size:10px; color:var(--text-muted);">${item.originalPhrase || ''}</span>
-                            <div style="font-size:13px; font-weight:700;">${item.primaryTranslation}</div>
-                        </div>
-                        <button class="glass-pill" style="padding:4px 8px; color:#ef4444;" onclick="deleteSavedItem(${i})">🗑️</button>
-                    `;
-                    container.appendChild(row);
+                    throw new Error("Invalid format");
+                })
+                .catch(function() {
+                    var local = getSmartLocalSlang(phrase, tone, direction);
+                    local.isOnline = false;
+                    return local;
                 });
             }
-            savedModal.style.display = 'flex';
-        });
-        document.getElementById('closeSavedBtn').addEventListener('click', () => savedModal.style.display = 'none');
-        document.getElementById('clearAllSavedBtn').addEventListener('click', () => {
-            localStorage.setItem('feraslang_saved', '[]');
-            updateSavedBadge();
-            savedModal.style.display = 'none';
-            showToast('نشان‌شده‌ها پاک شدند');
-        });
-        window.deleteSavedItem = (idx) => {
-            let list = getSaved();
-            list.splice(idx, 1);
-            localStorage.setItem('feraslang_saved', JSON.stringify(list));
-            updateSavedBadge();
-            document.getElementById('openSavedDrawerBtn').click();
-        };
 
-        // پنجره کلید
-        const apiKeyModal = document.getElementById('apiKeyModal');
-        const personalKeyInput = document.getElementById('personalKeyInput');
-        const apiKeyDot = document.getElementById('apiKeyDot');
-
-        function refreshKeyStatus() {
-            const k = localStorage.getItem('feraslang_personal_gemini_key') || '';
-            personalKeyInput.value = k;
-            apiKeyDot.style.background = k ? "var(--emerald)" : "#94a3b8";
-        }
-        refreshKeyStatus();
-
-        document.getElementById('openApiKeyModalBtn').addEventListener('click', () => apiKeyModal.style.display = 'flex');
-        document.getElementById('closeApiKeyBtn').addEventListener('click', () => apiKeyModal.style.display = 'none');
-        document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
-            const v = personalKeyInput.value.trim();
-            if (v) {
-                localStorage.setItem('feraslang_personal_gemini_key', v);
-                refreshKeyStatus();
-                showToast('کلید شخصی ذخیره شد ✅');
-                apiKeyModal.style.display = 'none';
+            function parseSafeJson(text) {
+                if (!text) return null;
+                try {
+                    var cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+                    var f = cleaned.indexOf('{');
+                    var l = cleaned.lastIndexOf('}');
+                    if (f !== -1 && l !== -1) cleaned = cleaned.substring(f, l + 1);
+                    return JSON.parse(cleaned);
+                } catch (e) { return null; }
             }
-        });
-        document.getElementById('removeApiKeyBtn').addEventListener('click', () => {
-            localStorage.removeItem('feraslang_personal_gemini_key');
-            refreshKeyStatus();
-            showToast('کلید حذف شد؛ حالت پیش‌فرض فعال است');
-            apiKeyModal.style.display = 'none';
-        });
 
-        // پیام اعلان شناور
-        let toastTimer;
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.opacity = '1';
-            t.style.transform = 'translateX(-50%) translateY(0)';
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                t.style.opacity = '0';
-                t.style.transform = 'translateX(-50%) translateY(20px)';
-            }, 2800);
+            function getSmartLocalSlang(phrase, tone, direction) {
+                var p = (phrase || "").toLowerCase();
+                if (p.indexOf("سلام") !== -1 || p.indexOf("hello") !== -1 || p.indexOf("hi") !== -1) {
+                    if (tone === "street") {
+                        return {
+                            primaryTranslation: "Yo, what's good fam! / Sup bro!",
+                            toneLabel: "خیابانی",
+                            literalMeaning: "سلام خودمانی و گرم خیابانی",
+                            culturalExplanation: "در جمع دوستان نزدیک و صمیمی به کار می‌رود.",
+                            alternatives: ["What's crackin'?", "Sup dude!"],
+                            suggestedEmojis: ["🤙", "👊", "🕶️"],
+                            dialogue: {
+                                speakerA_en: "Yo, anyone home?",
+                                speakerA_fa: "هی، کسی هست؟",
+                                speakerB_en: "Yo, what's good fam! Come on in.",
+                                speakerB_fa: "به به چه خبر دادا! بیا تو."
+                            }
+                        };
+                    } else if (tone === "sarcastic") {
+                        return {
+                            primaryTranslation: "Look who finally decided to show up!",
+                            toneLabel: "طعنه‌آمیز",
+                            literalMeaning: "به به بالاخره پیدات شد!",
+                            culturalExplanation: "وقتی کسی بعد از مدت‌ها تاخیر وارد می‌شود.",
+                            alternatives: ["Oh, you're alive?", "Well, look who it is!"],
+                            suggestedEmojis: ["🙄", "😒", "⏰"],
+                            dialogue: {
+                                speakerA_en: "Hey, sorry I'm late.",
+                                speakerA_fa: "سلام، شرمنده دیر شد.",
+                                speakerB_en: "Look who finally decided to show up!",
+                                speakerB_fa: "به به، بالاخره افتخار دادی!"
+                            }
+                        };
+                    } else {
+                        return {
+                            primaryTranslation: "Hey there! / What's up!",
+                            toneLabel: "عامیانه روزمره",
+                            literalMeaning: "سلام دوستانه روزمره",
+                            culturalExplanation: "مرسوم‌ترین شکل سلام بین دوستان.",
+                            alternatives: ["Hey! How's it going?", "Hi there!"],
+                            suggestedEmojis: ["👋", "✨", "😊"],
+                            dialogue: {
+                                speakerA_en: "Hey, long time no see!",
+                                speakerA_fa: "سلام، خیلی وقته ندیدمت!",
+                                speakerB_en: "Hey there! What's up?",
+                                speakerB_fa: "سلام! چه خبر، اوضاعت چطور بوده؟"
+                            }
+                        };
+                    }
+                }
+                return {
+                    primaryTranslation: direction === 'fa-en' ? "Hit me up about " + phrase : "در مورد «" + phrase + "» ردیفه",
+                    toneLabel: "عامیانه",
+                    literalMeaning: "مفهوم کاربردی برای «" + phrase + "»",
+                    culturalExplanation: "کاربرد محاوره‌ای و روان در گفت‌وگوها.",
+                    alternatives: ["Sounds good", "Right on"],
+                    suggestedEmojis: ["👌", "🔥", "🤝"],
+                    dialogue: {
+                        speakerA_en: "What do you think?",
+                        speakerA_fa: "نظرت چیه؟",
+                        speakerB_en: "Sounds like a solid plan to me!",
+                        speakerB_fa: "به نظرم خیلی عالی و ردیفه!"
+                    }
+                };
+            }
+
+            function renderResult(data) {
+                rawPrimaryTranslation = data.primaryTranslation || '';
+                resPrimary.innerText = rawPrimaryTranslation;
+                resLiteral.innerText = data.literalMeaning || '';
+                resCultural.innerText = data.culturalExplanation || '';
+                resToneBadge.innerText = data.toneLabel || 'عامیانه';
+
+                resSourceBadge.innerText = data.isOnline ? "هوش مصنوعی زنده ✨" : "پایگاه محلی ⚠️";
+                resSourceBadge.style.color = data.isOnline ? "var(--emerald)" : "var(--amber)";
+
+                renderEmojiModule(data.suggestedEmojis);
+
+                resAlternatives.innerHTML = '';
+                (data.alternatives || []).forEach(function(alt) {
+                    var chip = document.createElement('button');
+                    chip.className = "glass-pill";
+                    chip.style.padding = "4px 10px";
+                    chip.style.fontSize = "11px";
+                    chip.innerText = alt;
+                    chip.onclick = function() { copyText(alt, 'معادل کپی شد ✅'); };
+                    resAlternatives.appendChild(chip);
+                });
+
+                if (data.dialogue) {
+                    dialogueA_en.innerText = data.dialogue.speakerA_en || '';
+                    dialogueA_fa.innerText = data.dialogue.speakerA_fa || '';
+                    dialogueB_en.innerText = data.dialogue.speakerB_en || '';
+                    dialogueB_fa.innerText = data.dialogue.speakerB_fa || '';
+                }
+                checkBookmarkStatus();
+            }
+
+            function renderEmojiModule(emojis) {
+                currentSuggestedEmojis = (emojis && emojis.length) ? emojis : ['🔥', '✨', '👀', '🤙'];
+                selectedEmojis = [];
+                selectableEmojisList.innerHTML = '';
+
+                currentSuggestedEmojis.forEach(function(em) {
+                    var btn = document.createElement('button');
+                    btn.className = "glass-pill";
+                    btn.style.padding = "6px 14px";
+                    btn.style.fontSize = "18px";
+                    btn.innerText = em;
+                    btn.onclick = function() {
+                        var idx = selectedEmojis.indexOf(em);
+                        if (idx > -1) {
+                            selectedEmojis.splice(idx, 1);
+                            btn.style.borderColor = "var(--glass-inner-border)";
+                            btn.style.background = "var(--glass-inner-bg)";
+                        } else {
+                            selectedEmojis.push(em);
+                            btn.style.borderColor = "var(--blue)";
+                            btn.style.background = "rgba(10,132,255,0.2)";
+                        }
+                    };
+                    selectableEmojisList.appendChild(btn);
+                });
+            }
+
+            selectAllEmojisBtn.addEventListener('click', function() {
+                var pills = selectableEmojisList.querySelectorAll('button');
+                var allSelected = selectedEmojis.length === currentSuggestedEmojis.length;
+                selectedEmojis = [];
+                pills.forEach(function(p, idx) {
+                    if (!allSelected) {
+                        selectedEmojis.push(currentSuggestedEmojis[idx]);
+                        p.style.borderColor = "var(--blue)";
+                        p.style.background = "rgba(10,132,255,0.2)";
+                    } else {
+                        p.style.borderColor = "var(--glass-inner-border)";
+                        p.style.background = "var(--glass-inner-bg)";
+                    }
+                });
+            });
+
+            applySelectedEmojisBtn.addEventListener('click', function() {
+                if (selectedEmojis.length === 0) {
+                    showToast('حداقل یک ایموجی را انتخاب کنید 💡');
+                    return;
+                }
+                resPrimary.innerText = rawPrimaryTranslation + " " + selectedEmojis.join(' ');
+                if (currentResultData) currentResultData.primaryTranslation = resPrimary.innerText;
+                showToast('ایموجی‌ها پیوست شدند ✨');
+            });
+
+            resetEmojisBtn.addEventListener('click', function() {
+                resPrimary.innerText = rawPrimaryTranslation;
+                if (currentResultData) currentResultData.primaryTranslation = rawPrimaryTranslation;
+                selectableEmojisList.querySelectorAll('button').forEach(function(p) {
+                    p.style.borderColor = "var(--glass-inner-border)";
+                    p.style.background = "var(--glass-inner-bg)";
+                });
+                selectedEmojis = [];
+                showToast('متن ساده بازگردانده شد');
+            });
+
+            function speak(txt, lang) {
+                if (!('speechSynthesis' in window)) {
+                    showToast('پخش صوت در دسترس نیست');
+                    return;
+                }
+                window.speechSynthesis.cancel();
+                var u = new SpeechSynthesisUtterance(txt);
+                u.lang = lang;
+                u.rate = 0.9;
+                window.speechSynthesis.speak(u);
+            }
+
+            document.getElementById('playAudioBtn').addEventListener('click', function() {
+                speak(resPrimary.innerText, currentDirection === 'fa-en' ? 'en-US' : 'fa-IR');
+            });
+            document.getElementById('playDialogueABtn').addEventListener('click', function() { speak(dialogueA_en.innerText, 'en-US'); });
+            document.getElementById('playDialogueBBtn').addEventListener('click', function() { speak(dialogueB_en.innerText, 'en-US'); });
+
+            document.getElementById('copyResultBtn').addEventListener('click', function() {
+                copyText(resPrimary.innerText, 'در کلیپ‌بورد کپی شد ✅');
+            });
+
+            function copyText(txt, msg) {
+                var t = document.createElement("textarea");
+                t.value = txt;
+                document.body.appendChild(t);
+                t.select();
+                document.execCommand("copy");
+                document.body.removeChild(t);
+                showToast(msg);
+            }
+
+            function getSaved() {
+                try { return JSON.parse(safeStorageGet('feraslang_saved', '[]')) || []; } catch(e){ return []; }
+            }
+            function updateSavedBadge() {
+                document.getElementById('savedCountBadge').innerText = getSaved().length;
+            }
+            updateSavedBadge();
+
+            function checkBookmarkStatus() {
+                if (!currentResultData) return;
+                var list = getSaved();
+                var isBookmarked = list.some(function(i) { return i.primaryTranslation === currentResultData.primaryTranslation; });
+                bookmarkBtn.style.color = isBookmarked ? "var(--amber)" : "var(--text-muted)";
+            }
+
+            bookmarkBtn.addEventListener('click', function() {
+                if (!currentResultData) return;
+                var list = getSaved();
+                var idx = list.findIndex(function(i) { return i.primaryTranslation === currentResultData.primaryTranslation; });
+                if (idx > -1) {
+                    list.splice(idx, 1);
+                    showToast('از نشان‌شده‌ها حذف شد');
+                } else {
+                    list.unshift(currentResultData);
+                    showToast('به نشان‌شده‌ها اضافه شد ⭐️');
+                }
+                safeStorageSet('feraslang_saved', JSON.stringify(list));
+                updateSavedBadge();
+                checkBookmarkStatus();
+            });
+
+            var savedModal = document.getElementById('savedModal');
+            document.getElementById('openSavedDrawerBtn').addEventListener('click', function() {
+                var list = getSaved();
+                var container = document.getElementById('savedItemsList');
+                container.innerHTML = '';
+                if (!list.length) {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; font-size:12px; color:var(--text-muted);">هنوز موردی نشان نشده است ⭐️</div>';
+                } else {
+                    list.forEach(function(item, i) {
+                        var row = document.createElement('div');
+                        row.className = "liquid-glass";
+                        row.style.padding = "10px 14px";
+                        row.style.display = "flex";
+                        row.style.alignItems = "center";
+                        row.style.justifyContent = "space-between";
+                        row.innerHTML = '<div><span style="font-size:10px; color:var(--text-muted);">' + (item.originalPhrase || '') + '</span><div style="font-size:13px; font-weight:700;">' + item.primaryTranslation + '</div></div><button class="glass-pill" style="padding:4px 8px; color:#ef4444;" onclick="deleteSavedItem(' + i + ')">🗑️</button>';
+                        container.appendChild(row);
+                    });
+                }
+                savedModal.style.display = 'flex';
+            });
+            document.getElementById('closeSavedBtn').addEventListener('click', function() { savedModal.style.display = 'none'; });
+            document.getElementById('clearAllSavedBtn').addEventListener('click', function() {
+                safeStorageSet('feraslang_saved', '[]');
+                updateSavedBadge();
+                savedModal.style.display = 'none';
+                showToast('نشان‌شده‌ها پاک شدند');
+            });
+            window.deleteSavedItem = function(idx) {
+                var list = getSaved();
+                list.splice(idx, 1);
+                safeStorageSet('feraslang_saved', JSON.stringify(list));
+                updateSavedBadge();
+                document.getElementById('openSavedDrawerBtn').click();
+            };
+
+            var apiKeyModal = document.getElementById('apiKeyModal');
+            var personalKeyInput = document.getElementById('personalKeyInput');
+            var apiKeyDot = document.getElementById('apiKeyDot');
+
+            function refreshKeyStatus() {
+                var k = safeStorageGet('feraslang_personal_gemini_key', '');
+                personalKeyInput.value = k;
+                apiKeyDot.style.background = k ? "var(--emerald)" : "#94a3b8";
+            }
+            refreshKeyStatus();
+
+            document.getElementById('openApiKeyModalBtn').addEventListener('click', function() { apiKeyModal.style.display = 'flex'; });
+            document.getElementById('closeApiKeyBtn').addEventListener('click', function() { apiKeyModal.style.display = 'none'; });
+            document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
+                var v = personalKeyInput.value.trim();
+                if (v) {
+                    safeStorageSet('feraslang_personal_gemini_key', v);
+                    refreshKeyStatus();
+                    showToast('کلید ذخیره شد ✅');
+                    apiKeyModal.style.display = 'none';
+                }
+            });
+            document.getElementById('removeApiKeyBtn').addEventListener('click', function() {
+                try { localStorage.removeItem('feraslang_personal_gemini_key'); } catch(e){}
+                refreshKeyStatus();
+                showToast('کلید حذف شد');
+                apiKeyModal.style.display = 'none';
+            });
+
+            var toastTimer;
+            function showToast(msg) {
+                var t = document.getElementById('toast');
+                t.innerText = msg;
+                t.style.opacity = '1';
+                t.style.transform = 'translateX(-50%) translateY(0)';
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function() {
+                    t.style.opacity = '0';
+                    t.style.transform = 'translateX(-50%) translateY(20px)';
+                }, 2800);
+            }
         }
-    });
+
+        // تضمین اجرای اسکریپت در زمان لود کامل
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startApp);
+        } else {
+            startApp();
+        }
+    })();
 </script>
