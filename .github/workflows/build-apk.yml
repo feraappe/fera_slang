@@ -103,7 +103,6 @@ uses: actions/checkout@v4
         const file = "android/app/src/main/AndroidManifest.xml";
         if (fs.existsSync(file)) {
           let xml = fs.readFileSync(file, "utf8");
-          // افزودن دسترسی‌ها
           const perms = [
             "android.permission.INTERNET",
             "android.permission.RECORD_AUDIO",
@@ -115,7 +114,6 @@ uses: actions/checkout@v4
           });
           if (added) xml = xml.replace("<application", added + "\n    <application");
 
-          // فعال‌سازی Cleartext Traffic و شتاب سخت‌افزاری وب‌ویو
           if (!xml.includes("android:usesCleartextTraffic")) {
             xml = xml.replace("<application", `<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"`);
           }
