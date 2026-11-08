@@ -78,49 +78,89 @@ uses: actions/checkout@v4
   - name: 9. Generate Launcher Icons (icon.png)
     run: |
       pip install Pillow
-      echo 'import os' > make_icons.py
-      echo 'from PIL import Image' >> make_icons.py
-      echo 'src = "icon.png" if os.path.exists("icon.png") else ("logo.png" if os.path.exists("logo.png") else None)' >> make_icons.py
-      echo 'if src:' >> make_icons.py
-      echo '    img = Image.open(src).convert("RGBA")' >> make_icons.py
-      echo '    densities = [("mipmap-mdpi", 48), ("mipmap-hdpi", 72), ("mipmap-xhdpi", 96), ("mipmap-xxhdpi", 144), ("mipmap-xxxhdpi", 192)]' >> make_icons.py
-      echo '    for folder, size in densities:' >> make_icons.py
-      echo '        target = os.path.join("android/app/src/main/res", folder)' >> make_icons.py
-      echo '        os.makedirs(target, exist_ok=True)' >> make_icons.py
-      echo '        resized = img.resize((size, size), Image.Resampling.LANCZOS)' >> make_icons.py
-      echo '        resized.save(os.path.join(target, "ic_launcher.png"))' >> make_icons.py
-      echo '        resized.save(os.path.join(target, "ic_launcher_round.png"))' >> make_icons.py
-      echo '        resized.save(os.path.join(target, "ic_launcher_foreground.png"))' >> make_icons.py
-      echo '    print("Icons generated successfully!")' >> make_icons.py
-      echo 'else:' >> make_icons.py
-      echo '    print("Keeping default icons.")' >> make_icons.py
+      cat << "EOF" > make_icons.py
+      import os
+      from PIL import Image
+
+      src = "icon.png" if os.path.exists("icon.png") else ("logo.png" if os.path.exists("logo.png") else None)
+      if src:
+          img = Image.open(src).convert("RGBA")
+          densities = [
+              ("mipmap-mdpi", 48),
+              ("mipmap-hdpi", 72),
+              ("mipmap-xhdpi", 96),
+              ("mipmap-xxhdpi", 144),
+              ("mipmap-xxxhdpi", 192)
+          ]
+          for folder, size in densities:
+              target = os.path.join("android/app/src/main/res", folder)
+              os.makedirs(target, exist_ok=True)
+              resized = img.resize((size, size), Image.Resampling.LANCZOS)
+              resized.save(os.path.join(target, "ic_launcher.png"))
+              resized.save(os.path.join(target, "ic_launcher_round.png"))
+              resized.save(os.path.join(target, "ic_launcher_foreground.png"))
+          print("Icons generated successfully!")
+      else:
+          print("Keeping default icons.")
+      EOF
       python3 make_icons.py
 
-  - name: 10. Inject Permissions and Cleartext Security
+  - name: 10. Update AndroidManifest Permissions and Settings
     run: |
-      node -e '
-        const fs = require("fs");
-        const file = "android/app/src/main/AndroidManifest.xml";
-        if (fs.existsSync(file)) {
-          let xml = fs.readFileSync(file, "utf8");
-          const perms = [
-            "android.permission.INTERNET",
-            "android.permission.RECORD_AUDIO",
-            "android.permission.MODIFY_AUDIO_SETTINGS"
-          ];
-          let added = "";
-          perms.forEach(p => {
-            if (!xml.includes(p)) added += `\n    <uses-permission android:name="${p}" />`;
-          });
-          if (added) xml = xml.replace("<application", added + "\n    <application");
+      cat << "EOF" > update_manifest.py
+      import os
 
-          if (!xml.includes("android:usesCleartextTraffic")) {
-            xml = xml.replace("<application", `<application android:usesCleartextTraffic="true" android:hardwareAccelerated="true"`);
-          }
-          fs.writeFileSync(file, xml, "utf8");
-          console.log("Manifest patched with cleartext and audio permissions successfully.");
-        }
-      '
+      manifest_path = "android/app/src/main/AndroidManifest.xml"
+      if not os.path.exists(manifest_path):
+          print("AndroidManifest.xml not found!")
+          exit(0)
+
+      with open(manifest_path, "r", encoding="utf-8") as f:
+          xml = f.read()
+
+      # ۱. تعریف مجوزهای ضروری ارتباطی و صوتی
+      permissions = [
+          "android.permission.INTERNET",
+          "android.permission.ACCESS_NETWORK_STATE",
+          "android.permission.RECORD_AUDIO",
+          "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
+
+      # ۲. سخت‌افزار اختیاری میکروفون (عدم مسدودسازی نصب در دستگاه‌های فاقد میکروفون سخت‌افزاری)
+      features = [
+          '<uses-feature android:name="android.hardware.microphone" android:required="false" />'
+      ]
+
+      injections = []
+      for perm in permissions:
+          if f'android:name="{perm}"' not in xml:
+              injections.append(f'    <uses-permission android:name="{perm}" />')
+
+      for feat in features:
+          if 'android.hardware.microphone' not in xml:
+              injections.append(f'    {feat}')
+
+      if injections:
+          insert_text = "\n".join(injections) + "\n"
+          xml = xml.replace("<application", insert_text + "    <application", 1)
+
+      # ۳. ویژگی‌های عملکردی تگ <application>
+      app_attributes = [
+          ('android:usesCleartextTraffic', 'android:usesCleartextTraffic="true"'),
+          ('android:hardwareAccelerated', 'android:hardwareAccelerated="true"'),
+          ('android:largeHeap', 'android:largeHeap="true"')
+      ]
+
+      for check_key, full_attr in app_attributes:
+          if check_key not in xml:
+              xml = xml.replace("<application", f"<application {full_attr}", 1)
+
+      with open(manifest_path, "w", encoding="utf-8") as f:
+          f.write(xml)
+
+      print("AndroidManifest.xml successfully updated with permissions, hardware features, and acceleration attributes.")
+      EOF
+      python3 update_manifest.py
 
   - name: 11. Generate Release Keystore
     run: |
