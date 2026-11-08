@@ -1,4 +1,4 @@
-name: Build Android APK (Zero White-Screen)
+name: Build Android APK
 
 on:
 push:
@@ -11,21 +11,21 @@ jobs:
 build:
 runs-on: ubuntu-latest
 steps:
-- name: 1. Checkout Code
+- name: Checkout Code
 uses: actions/checkout@v4
 
-  - name: 2. Setup Java JDK 21
+  - name: Setup Java JDK 21
     uses: actions/setup-java@v5
     with:
       distribution: 'temurin'
       java-version: '21'
 
-  - name: 3. Setup Node.js 22
+  - name: Setup Node.js 22
     uses: actions/setup-node@v4
     with:
       node-version: 22
 
-  - name: 4. Prepare Web Directory (index.html)
+  - name: Prepare Web Directory
     run: |
       mkdir -p www
       if [ -f "index.html" ]; then
@@ -42,7 +42,7 @@ uses: actions/checkout@v4
         fi
       fi
 
-  - name: 5. Initialize Capacitor with Native WebConfig
+  - name: Initialize Capacitor with Native WebConfig
     run: |
       npm init -y
       npm install @capacitor/core @capacitor/cli @capacitor/android
@@ -59,7 +59,7 @@ uses: actions/checkout@v4
       EOF
       npx cap add android
 
-  - name: 6. Fast Gradle Config (Prevent 504 Timeout)
+  - name: Fast Gradle Config
     run: |
       PROP="android/gradle/wrapper/gradle-wrapper.properties"
       if [ -f "$PROP" ]; then
@@ -67,15 +67,15 @@ uses: actions/checkout@v4
         cat "$PROP"
       fi
 
-  - name: 7. Setup Gradle Caching Action
+  - name: Setup Gradle Caching Action
     uses: gradle/actions/setup-gradle@v4
 
-  - name: 8. Configure Java 21 & SDK Environment
+  - name: Configure Java 21 and SDK Environment
     run: |
       echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
       echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
-  - name: 9. Generate Launcher Icons (icon.png)
+  - name: Generate Launcher Icons
     run: |
       pip install Pillow
       cat << "EOF" > make_icons.py
@@ -105,7 +105,7 @@ uses: actions/checkout@v4
       EOF
       python3 make_icons.py
 
-  - name: 10. Update AndroidManifest Permissions and Settings
+  - name: Update AndroidManifest Permissions and Settings
     run: |
       cat << "EOF" > update_manifest.py
       import os
@@ -118,7 +118,6 @@ uses: actions/checkout@v4
       with open(manifest_path, "r", encoding="utf-8") as f:
           xml = f.read()
 
-      # ۱. تعریف مجوزهای ضروری ارتباطی و صوتی
       permissions = [
           "android.permission.INTERNET",
           "android.permission.ACCESS_NETWORK_STATE",
@@ -126,7 +125,6 @@ uses: actions/checkout@v4
           "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
 
-      # ۲. سخت‌افزار اختیاری میکروفون (عدم مسدودسازی نصب در دستگاه‌های فاقد میکروفون سخت‌افزاری)
       features = [
           '<uses-feature android:name="android.hardware.microphone" android:required="false" />'
       ]
@@ -144,7 +142,6 @@ uses: actions/checkout@v4
           insert_text = "\n".join(injections) + "\n"
           xml = xml.replace("<application", insert_text + "    <application", 1)
 
-      # ۳. ویژگی‌های عملکردی تگ <application>
       app_attributes = [
           ('android:usesCleartextTraffic', 'android:usesCleartextTraffic="true"'),
           ('android:hardwareAccelerated', 'android:hardwareAccelerated="true"'),
@@ -158,15 +155,15 @@ uses: actions/checkout@v4
       with open(manifest_path, "w", encoding="utf-8") as f:
           f.write(xml)
 
-      print("AndroidManifest.xml successfully updated with permissions, hardware features, and acceleration attributes.")
+      print("AndroidManifest.xml successfully updated.")
       EOF
       python3 update_manifest.py
 
-  - name: 11. Generate Release Keystore
+  - name: Generate Release Keystore
     run: |
       keytool -genkeypair -v -keystore android/release.keystore -alias feraslang -keyalg RSA -keysize 2048 -validity 10000 -storepass feraslang2026 -keypass feraslang2026 -dname "CN=FeRaSlang, OU=App, O=FeRa, L=Tehran, ST=Tehran, C=IR"
 
-  - name: 12. Build Debug and Release Packages
+  - name: Build Debug and Release Packages
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
@@ -175,7 +172,7 @@ uses: actions/checkout@v4
       chmod +x gradlew
       ./gradlew assembleDebug assembleRelease --no-daemon
 
-  - name: 13. Align and Sign Bazaar Release APK
+  - name: Align and Sign Bazaar Release APK
     run: |
       mkdir -p output-apks
       if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
@@ -194,7 +191,7 @@ uses: actions/checkout@v4
         cp android/release.keystore output-apks/feraslang-release.keystore
       fi
 
-  - name: 14. Upload Deliverables
+  - name: Upload Deliverables
     uses: actions/upload-artifact@v4
     with:
       name: FeRa-Slang-Official-Package
