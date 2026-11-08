@@ -61,7 +61,6 @@ uses: actions/checkout@v4
       '
       npx cap add android
       npx cap sync android
-      npx cap copy android
 
   - name: Force Native Assets Placement
     run: |
