@@ -83,34 +83,6 @@ uses: actions/checkout@v4
       echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
       echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
-  - name: Generate Launcher Icons
-    run: |
-      pip install Pillow
-      python3 -c '
-      import os
-      from PIL import Image
-      src = "icon.png" if os.path.exists("icon.png") else ("logo.png" if os.path.exists("logo.png") else None)
-      if src:
-          img = Image.open(src).convert("RGBA")
-          densities = [
-              ("mipmap-mdpi", 48),
-              ("mipmap-hdpi", 72),
-              ("mipmap-xhdpi", 96),
-              ("mipmap-xxhdpi", 144),
-              ("mipmap-xxxhdpi", 192)
-          ]
-          for folder, size in densities:
-              target = os.path.join("android/app/src/main/res", folder)
-              os.makedirs(target, exist_ok=True)
-              resized = img.resize((size, size), Image.Resampling.LANCZOS)
-              resized.save(os.path.join(target, "ic_launcher.png"))
-              resized.save(os.path.join(target, "ic_launcher_round.png"))
-              resized.save(os.path.join(target, "ic_launcher_foreground.png"))
-          print("Icons generated successfully!")
-      else:
-          print("No icon.png found, retaining default icons.")
-      '
-
   - name: Update AndroidManifest Permissions
     run: |
       node -e '
