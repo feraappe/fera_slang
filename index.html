@@ -293,6 +293,7 @@
                     <div class="flex items-center gap-2">
                         <span id="resToneBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-glass-purple/15 text-glass-purple">عامیانه</span>
                         <span id="resDirectionBadge" class="text-[10px] font-bold text-slate-400">FA ➔ EN</span>
+                        <span id="resSourceBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500">هوش مصنوعی زنده ✨</span>
                     </div>
 
                     <div class="flex items-center gap-2">
@@ -729,7 +730,7 @@
                 resultContainer.classList.remove('hidden');
                 resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch (err) {
-                showToast('خطا در ارتباط؛ پایگاه محلی فعال شد');
+                showToast('خطا در ترجمه عبارت');
             } finally {
                 translateBtn.disabled = false;
                 translateBtnText.innerText = 'ترجمه اصطلاح و مفهوم';
@@ -741,27 +742,35 @@
         async function fetchAiSlang(phrase, tone, direction) {
             const personalKey = localStorage.getItem('feraslang_personal_gemini_key') || '';
 
-            const systemPrompt = `You are a bilingual Persian-English conversational lexicographer and street slang translator. Translate colloquial idioms, sarcasm, and everyday dialogue naturally. Always respond ONLY in valid raw JSON with this exact schema:
+            const systemPrompt = `You are a professional bilingual Persian-English idiomatic slang translator. Translate colloquial idioms, street slang, and natural spoken dialogue.
+You MUST output ONLY a valid RFC-8259 JSON object matching this schema without any markdown wrapping or text:
 {
-  "primaryTranslation": "natural everyday translation",
-  "toneLabel": "لحن اصطلاح به فارسی",
-  "literalMeaning": "معنی تحت‌اللفظی و کاربرد به فارسی",
-  "culturalExplanation": "توضیح کوتاه و جذاب فرهنگی اصطلاح به فارسی",
-  "alternatives": ["معادل دیگر 1", "معادل دیگر 2"],
+  "primaryTranslation": "natural idiomatic translation",
+  "toneLabel": "لحن اصطلاح به فارسی (مثلا: عامیانه روزمره، خیابانی، صمیمی)",
+  "literalMeaning": "معنی لغوی یا کاربرد اصلی عبارت به فارسی",
+  "culturalExplanation": "توضیح کوتاه و جذاب کاربرد فرهنگی به فارسی",
+  "alternatives": ["معادل دوم", "معادل سوم"],
   "suggestedEmojis": ["emoji1", "emoji2", "emoji3"],
   "dialogue": {
-    "speakerA_en": "Dialogue line A in English",
+    "speakerA_en": "Example line A in English",
     "speakerA_fa": "ترجمه خط A به فارسی",
-    "speakerB_en": "Dialogue line B in English",
+    "speakerB_en": "Example line B in English",
     "speakerB_fa": "ترجمه خط B به فارسی"
   }
 }`;
-            const userPrompt = `Direction: ${direction === 'fa-en' ? 'Persian to English Slang/Idiom' : 'English to Colloquial Persian'}. Tone: ${tone}. Phrase: "${phrase}". Output RAW JSON ONLY.`;
+            const userPrompt = `Input: "${phrase}". Direction: ${direction === 'fa-en' ? 'Persian to English Slang' : 'English to Persian Slang'}. Tone: ${tone}. Translate now.`;
 
             // ۱. اتصال مستقیم به ورکر کلادفلر
             try {
                 const payload = {
-                    contents: [{ parts: [{ text: `${systemPrompt}\n\nTask: ${userPrompt}` }] }]
+                    contents: [{
+                        role: "user",
+                        parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        temperature: 0.3
+                    }
                 };
                 const headers = { 'Content-Type': 'application/json' };
                 if (personalKey) headers['x-api-key'] = personalKey;
@@ -777,49 +786,39 @@
                     const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (rawText) {
                         const parsed = parseSafeJson(rawText);
-                        if (parsed && parsed.primaryTranslation) return parsed;
+                        if (parsed && parsed.primaryTranslation) {
+                            parsed.isOnline = true;
+                            return parsed;
+                        }
                     }
+                } else {
+                    const errBody = await res.text();
+                    console.warn('Cloudflare Worker Error:', res.status, errBody);
                 }
             } catch (e) {
                 console.warn('Worker Notice:', e);
             }
 
-            // ۲. پشتیبان دوم بدون کلید
-            try {
-                const fallbackRes = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: userPrompt }
-                        ],
-                        model: "mistral",
-                        jsonMode: true
-                    })
-                });
-
-                if (fallbackRes.ok) {
-                    const raw = await fallbackRes.text();
-                    const parsed = parseSafeJson(raw);
-                    if (parsed && parsed.primaryTranslation) return parsed;
-                }
-            } catch (fallbackErr) {
-                console.warn('Fallback Notice:', fallbackErr);
-            }
-
-            // ۳. دیکشنری هوشمند محلی
-            return getSmartLocalSlang(phrase, direction);
+            // ۲. اگر ورکر پاسخ نداد، استفاده از پایگاه محلی غنی
+            showToast('در حال استفاده از پایگاه محلی ⚠️');
+            const localData = getSmartLocalSlang(phrase, direction);
+            localData.isOnline = false;
+            return localData;
         }
 
         function parseSafeJson(text) {
+            if (!text) return null;
             try {
-                let cleaned = text.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+                let cleaned = text.trim();
+                cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
                 const f = cleaned.indexOf('{');
                 const l = cleaned.lastIndexOf('}');
-                if (f !== -1 && l !== -1) cleaned = cleaned.substring(f, l + 1);
+                if (f !== -1 && l !== -1) {
+                    cleaned = cleaned.substring(f, l + 1);
+                }
                 return JSON.parse(cleaned);
             } catch (e) {
+                console.warn('parseSafeJson error:', e, text);
                 return null;
             }
         }
@@ -827,17 +826,17 @@
         function getSmartLocalSlang(phrase, direction) {
             const p = phrase.trim();
             const def = {
-                primaryTranslation: direction === 'fa-en' ? "I wouldn't count on it" : "روش حساب باز نکن / بعیده",
+                primaryTranslation: direction === 'fa-en' ? "I'm with you on this" : "کاملاً باهات موافقم / پایه‌ام",
                 toneLabel: "عامیانه روزمره",
                 literalMeaning: direction === 'fa-en' ? `اصطلاح متناسب برای «${p}»` : `Everyday slang for "${p}"`,
-                culturalExplanation: "این عبارت برای انتقال سریع و طبیعی مقصود در مکالمات صمیمی بدون تعارفات رسمی استفاده می‌شود.",
-                alternatives: direction === 'fa-en' ? ["Fat chance", "No way", "Don't hold your breath"] : ["عمراً", "اصلاً راه نداره", "بی‌خیال"],
-                suggestedEmojis: ["👀", "🤷‍♂️", "🔥"],
+                culturalExplanation: "این عبارت برای انتقال سریع و طبیعی مقصود در مکالمات دوستانه و روزمره استفاده می‌شود.",
+                alternatives: direction === 'fa-en' ? ["Count me in", "Sounds like a plan", "Totally agree"] : ["پایه‌ام", "ردیفش کن", "قبوله"],
+                suggestedEmojis: ["🤝", "👌", "🔥"],
                 dialogue: {
-                    speakerA_en: "Are you sure this is going to happen?",
-                    speakerA_fa: "مطمئنی این اتفاق می‌افته؟",
-                    speakerB_en: "Honestly? I wouldn't count on it.",
-                    speakerB_fa: "راستش رو بخوای؟ اصلاً روش حساب نکن."
+                    speakerA_en: "Are you ready for this?",
+                    speakerA_fa: "برای این کار آماده‌ای؟",
+                    speakerB_en: "Absolutely, count me in!",
+                    speakerB_fa: "صد در صد، منم پام!"
                 }
             };
 
@@ -851,11 +850,21 @@
                 def.literalMeaning = "رو اعصابمه / کلافه‌ام کرده";
                 def.alternatives = ["Getting on my nerves", "Bugs me a lot", "It's infuriating"];
                 def.suggestedEmojis = ["😤", "🤯", "💢"];
-            } else if (p.includes("دمت گرم") || p.includes("ایول") || p.includes("کارت درسته")) {
-                def.primaryTranslation = "Props to you! / Kudos!";
-                def.literalMeaning = "دمت گرم / دست‌مریزاد";
+            } else if (p.includes("دمت گرم") || p.includes("ایول") || p.includes("دستت درد نکنه")) {
+                def.primaryTranslation = "Props to you! / Much obliged!";
+                def.literalMeaning = "دمت گرم / دست‌مریزاد / دستت درد نکنه";
                 def.alternatives = ["Way to go", "You nailed it", "Hats off to you"];
                 def.suggestedEmojis = ["👏", "🔥", "💪"];
+            } else if (p.includes("بی‌خیال") || p.includes("ولش کن")) {
+                def.primaryTranslation = "Never mind / Let it slide";
+                def.literalMeaning = "بی‌خیالش شو / فراموشش کن";
+                def.alternatives = ["Forget about it", "Drop it", "Let it go"];
+                def.suggestedEmojis = ["🤷‍♂️", "🍃", "✌️"];
+            } else if (p.includes("گیر نده") || p.includes("سر به سر")) {
+                def.primaryTranslation = "Get off my back! / Don't mess with me";
+                def.literalMeaning = "گیر نده / اذیتم نکن";
+                def.alternatives = ["Leave me alone", "Give me a break", "Cut it out"];
+                def.suggestedEmojis = ["🛑", "😤", "✋"];
             }
             return def;
         }
@@ -867,6 +876,17 @@
             resLiteral.innerText = data.literalMeaning || '';
             resCultural.innerText = data.culturalExplanation || '';
             resToneBadge.innerText = data.toneLabel || 'عامیانه';
+
+            const resSourceBadge = document.getElementById('resSourceBadge');
+            if (resSourceBadge) {
+                if (data.isOnline) {
+                    resSourceBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500";
+                    resSourceBadge.innerText = "هوش مصنوعی زنده ✨";
+                } else {
+                    resSourceBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500";
+                    resSourceBadge.innerText = "پایگاه محلی ⚠️";
+                }
+            }
 
             // راه‌اندازی ماژول ایموجی
             renderEmojiSelector(data.suggestedEmojis);
