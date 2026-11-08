@@ -3,24 +3,20 @@ name: Build Android APK
 on:
 push:
 branches:
-- mainname: Build Android APK
-
-on:
-push:
-branches:
-- main
-- master
+\- main
+\- master
 workflow_dispatch:
 
 jobs:
 build:
 runs-on: ubuntu-latest
 steps:
-- name: Checkout Code
+\- name: Checkout Code
 uses: actions/checkout@v4
 
+```
   - name: Setup Java JDK 21
-    uses: actions/setup-java@v5
+    uses: actions/setup-java@v4
     with:
       distribution: 'temurin'
       java-version: '21'
@@ -28,7 +24,7 @@ uses: actions/checkout@v4
   - name: Setup Node.js 22
     uses: actions/setup-node@v4
     with:
-      node-version: 22
+      node-version: '22'
 
   - name: Prepare Web Directory
     run: |
@@ -202,195 +198,4 @@ uses: actions/checkout@v4
       name: FeRa-Slang-Official-Package
       path: output-apks/
 
-- master
-workflow_dispatch:
-
-jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout Code
-uses: actions/checkout@v4
-
-  - name: Setup Java JDK 21
-    uses: actions/setup-java@v5
-    with:
-      distribution: 'temurin'
-      java-version: '21'
-
-  - name: Setup Node.js 22
-    uses: actions/setup-node@v4
-    with:
-      node-version: 22
-
-  - name: Prepare Web Directory
-    run: |
-      mkdir -p www
-      if [ -f "index.html" ]; then
-        cp index.html www/index.html
-        echo "Direct index.html found and placed in www/"
-      else
-        FOUND=$(find . -name "index.html" -not -path "*/.*" -not -path "*/node_modules/*" | head -n 1)
-        if [ -n "$FOUND" ]; then
-          cp "$FOUND" www/index.html
-          echo "Found index.html at $FOUND and copied to www/"
-        else
-          echo "CRITICAL: No index.html found!"
-          exit 1
-        fi
-      fi
-
-  - name: Initialize Capacitor with Native WebConfig
-    run: |
-      npm init -y
-      npm install @capacitor/core @capacitor/cli @capacitor/android
-      cat << 'EOF' > capacitor.config.json
-      {
-        "appId": "com.feraslang.app",
-        "appName": "FeRa Slang",
-        "webDir": "www",
-        "server": {
-          "androidScheme": "https",
-          "cleartext": true
-        }
-      }
-      EOF
-      npx cap add android
-
-  - name: Fast Gradle Config
-    run: |
-      PROP="android/gradle/wrapper/gradle-wrapper.properties"
-      if [ -f "$PROP" ]; then
-        sed -i 's/-all.zip/-bin.zip/g' "$PROP"
-        cat "$PROP"
-      fi
-
-  - name: Setup Gradle Caching Action
-    uses: gradle/actions/setup-gradle@v4
-
-  - name: Configure Java 21 and SDK Environment
-    run: |
-      echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
-      echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
-
-  - name: Generate Launcher Icons
-    run: |
-      pip install Pillow
-      cat << "EOF" > make_icons.py
-      import os
-      from PIL import Image
-
-      src = "icon.png" if os.path.exists("icon.png") else ("logo.png" if os.path.exists("logo.png") else None)
-      if src:
-          img = Image.open(src).convert("RGBA")
-          densities = [
-              ("mipmap-mdpi", 48),
-              ("mipmap-hdpi", 72),
-              ("mipmap-xhdpi", 96),
-              ("mipmap-xxhdpi", 144),
-              ("mipmap-xxxhdpi", 192)
-          ]
-          for folder, size in densities:
-              target = os.path.join("android/app/src/main/res", folder)
-              os.makedirs(target, exist_ok=True)
-              resized = img.resize((size, size), Image.Resampling.LANCZOS)
-              resized.save(os.path.join(target, "ic_launcher.png"))
-              resized.save(os.path.join(target, "ic_launcher_round.png"))
-              resized.save(os.path.join(target, "ic_launcher_foreground.png"))
-          print("Icons generated successfully!")
-      else:
-          print("Keeping default icons.")
-      EOF
-      python3 make_icons.py
-
-  - name: Update AndroidManifest Permissions and Settings
-    run: |
-      cat << "EOF" > update_manifest.py
-      import os
-
-      manifest_path = "android/app/src/main/AndroidManifest.xml"
-      if not os.path.exists(manifest_path):
-          print("AndroidManifest.xml not found!")
-          exit(0)
-
-      with open(manifest_path, "r", encoding="utf-8") as f:
-          xml = f.read()
-
-      permissions = [
-          "android.permission.INTERNET",
-          "android.permission.ACCESS_NETWORK_STATE",
-          "android.permission.RECORD_AUDIO",
-          "android.permission.MODIFY_AUDIO_SETTINGS"
-      ]
-
-      features = [
-          '<uses-feature android:name="android.hardware.microphone" android:required="false" />'
-      ]
-
-      injections = []
-      for perm in permissions:
-          if f'android:name="{perm}"' not in xml:
-              injections.append(f'    <uses-permission android:name="{perm}" />')
-
-      for feat in features:
-          if 'android.hardware.microphone' not in xml:
-              injections.append(f'    {feat}')
-
-      if injections:
-          insert_text = "\n".join(injections) + "\n"
-          xml = xml.replace("<application", insert_text + "    <application", 1)
-
-      app_attributes = [
-          ('android:usesCleartextTraffic', 'android:usesCleartextTraffic="true"'),
-          ('android:hardwareAccelerated', 'android:hardwareAccelerated="true"'),
-          ('android:largeHeap', 'android:largeHeap="true"')
-      ]
-
-      for check_key, full_attr in app_attributes:
-          if check_key not in xml:
-              xml = xml.replace("<application", f"<application {full_attr}", 1)
-
-      with open(manifest_path, "w", encoding="utf-8") as f:
-          f.write(xml)
-
-      print("AndroidManifest.xml successfully updated.")
-      EOF
-      python3 update_manifest.py
-
-  - name: Generate Release Keystore
-    run: |
-      keytool -genkeypair -v -keystore android/release.keystore -alias feraslang -keyalg RSA -keysize 2048 -validity 10000 -storepass feraslang2026 -keypass feraslang2026 -dname "CN=FeRaSlang, OU=App, O=FeRa, L=Tehran, ST=Tehran, C=IR"
-
-  - name: Build Debug and Release Packages
-    env:
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-    run: |
-      cd android
-      chmod +x gradlew
-      ./gradlew assembleDebug assembleRelease --no-daemon
-
-  - name: Align and Sign Bazaar Release APK
-    run: |
-      mkdir -p output-apks
-      if [ -f "android/app/build/outputs/apk/debug/app-debug.apk" ]; then
-        cp android/app/build/outputs/apk/debug/app-debug.apk output-apks/FeRa-Slang-Debug-Test.apk
-      fi
-      BUILD_TOOLS=$(ls -d /usr/local/lib/android/sdk/build-tools/* | sort -V | tail -n 1)
-      UNSIGNED_APK="android/app/build/outputs/apk/release/app-release-unsigned.apk"
-      if [ -f "$UNSIGNED_APK" ]; then
-        $BUILD_TOOLS/zipalign -v -p 4 "$UNSIGNED_APK" android/app/build/outputs/apk/release/app-release-aligned.apk
-        $BUILD_TOOLS/apksigner sign --ks android/release.keystore --ks-pass pass:feraslang2026 --ks-key-alias feraslang --key-pass pass:feraslang2026 --out output-apks/FeRa-Slang-Release-Bazaar.apk android/app/build/outputs/apk/release/app-release-aligned.apk
-        echo "Release APK signed successfully!"
-      elif [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
-        cp android/app/build/outputs/apk/release/app-release.apk output-apks/FeRa-Slang-Release-Bazaar.apk
-      fi
-      if [ -f "android/release.keystore" ]; then
-        cp android/release.keystore output-apks/feraslang-release.keystore
-      fi
-
-  - name: Upload Deliverables
-    uses: actions/upload-artifact@v4
-    with:
-      name: FeRa-Slang-Official-Package
-      path: output-apks/
+```
